@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rincell — Battery Diameter Tester</title>
+    <style>
+        :root {
+            --green: #4a9e5c;
+            --green-dk: #357a45;
+            --green-lt: #edf6ef;
+            --orange: #e07828;
+            --orange-lt: #fdf2ea;
+            --navy: #1b2a3b;
+            --navy-lt: #243448;
+            --border: #dce3ea;
+            --bg: #f4f6f8;
+            --surface: #ffffff;
+            --text: #1b2a3b;
+            --muted: #6b7e90;
+            --warn: #e07828;
+            --error: #c0392b;
+            --success: #4a9e5c;
+            --radius: 8px;
+            --shadow: 0 1px 4px rgba(27, 42, 59, .08);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            padding: 0 0 40px;
+        }
+
+        /* ── Header ── */
+        header {
+            background: var(--orange);
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            height: 64px;
+        }
+
+        .logo-mark {
+            width: 36px;
+            height: 36px;
+            flex-shrink: 0;
+        }
+
+        .logo-text {
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: .02em;
+            color: #000;
+        }
+
+        .header-sub {
+            margin-left: auto;
+            font-size: .8rem;
+            color: rgba(255, 255, 255, .65);
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        /* ── Layout ── */
+        .page {
+            max-width: 1080px;
+            margin: 28px auto;
+            padding: 0 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        @media (max-width: 780px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ── Cards ── */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 22px;
+        }
+
+        .card-title {
+            font-size: .7rem;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .card-title i {
+            font-size: 15px;
+            color: var(--green);
+        }
+
+        /* ── Form elements ── */
+        label {
+            display: block;
+            font-size: .78rem;
+            font-weight: 600;
+            color: var(--muted);
+            margin: 12px 0 4px;
+        }
+
+        label:first-of-type {
+            margin-top: 0;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 6px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: .875rem;
+            outline: none;
+            transition: border-color .18s, box-shadow .18s;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px rgba(74, 158, 92, .15);
+        }
+
+        .row2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        /* ── Buttons ── */
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            font-size: .875rem;
+            font-weight: 600;
+            padding: 9px 16px;
+            transition: background .15s, transform .1s;
+        }
+
+        button:active {
+            transform: scale(.97);
+        }
+
+        button:disabled {
+            opacity: .45;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: var(--green);
+            color: #fff;
+            width: 100%;
+            padding: 11px;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--green-dk);
+        }
+
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .btn-save {
+            background: var(--orange);
+            color: #fff;
+            width: 100%;
+            margin-top: 18px;
+        }
+
+        .btn-save:hover:not(:disabled) {
+            background: #c46820;
+        }
+
+        /* ── Test panel ── */
+        .battery-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .battery-row input {
+            flex: 1;
+            font-size: .95rem;
+            padding: 10px 12px;
+        }
+
+        .battery-row button {
+            width: auto;
+            padding: 10px 20px;
+            white-space: nowrap;
+        }
+
+        /* ── Log ── */
+        .log-label {
+            font-size: .7rem;
+            font-weight: 700;
+            letter-spacing: .07em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .log-box {
+            background: var(--navy);
+            color: #c8d8e8;
+            border-radius: 6px;
+            padding: 12px 14px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+            font-size: .78rem;
+            line-height: 1.7;
+        }
+
+        .l-info {
+            color: #7a9ab5;
+        }
+
+        .l-sample {
+            color: #5ecfc0;
+        }
+
+        .l-warn {
+            color: #e8b84b;
+        }
+
+        .l-error {
+            color: #e07070;
+        }
+
+        .l-success {
+            color: #5ecfc0;
+            font-weight: 600;
+        }
+
+        /* ── Results ── */
+        .results {
+            margin-top: 18px;
+            display: none;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .stat {
+            background: var(--green-lt);
+            border: 1px solid rgba(74, 158, 92, .2);
+            border-radius: var(--radius);
+            padding: 14px;
+            text-align: center;
+        }
+
+        .stat .val {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--green-dk);
+        }
+
+        .stat .val.tir {
+            color: var(--orange);
+        }
+
+        .stat .lbl {
+            font-size: .7rem;
+            color: var(--muted);
+            margin-top: 3px;
+            font-weight: 600;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        .samples-wrap {
+            margin-bottom: 14px;
+        }
+
+        .samples-label {
+            font-size: .7rem;
+            font-weight: 700;
+            letter-spacing: .07em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 7px;
+        }
+
+        .samples-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+        }
+
+        .chip {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: .8rem;
+            color: var(--text);
+        }
+
+        .chip span {
+            color: var(--muted);
+            font-size: .72rem;
+        }
+
+        .sheet-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: var(--green-dk);
+            text-decoration: none;
+            font-size: .83rem;
+            font-weight: 600;
+            border: 1px solid var(--green);
+            border-radius: 6px;
+            padding: 8px 14px;
+            background: var(--green-lt);
+            transition: background .15s;
+        }
+
+        .sheet-link:hover {
+            background: rgba(74, 158, 92, .2);
+        }
+
+        /* ── Status bar ── */
+        #statusBar {
+            margin-bottom: 16px;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: .83rem;
+            display: none;
+            font-weight: 500;
+        }
+
+        #statusBar.ok {
+            background: var(--green-lt);
+            border: 1px solid rgba(74, 158, 92, .4);
+            color: var(--green-dk);
+        }
+
+        #statusBar.err {
+            background: #fdf0ee;
+            border: 1px solid #f0b8b0;
+            color: var(--error);
+        }
+
+        #statusBar.info {
+            background: var(--orange-lt);
+            border: 1px solid rgba(224, 120, 40, .3);
+            color: var(--orange);
+        }
+
+        /* ── Divider ── */
+        .divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 18px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="logo-text">Rincell</div>
+        <div class="header-sub">Battery Diameter Tester</div>
+    </header>
+
+    <div class="page">
+
+        <div id="statusBar"></div>
+
+        <div class="grid">
+
+            <!-- ── LEFT: Settings ── -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="ti ti-settings" aria-hidden="true"></i> Settings
+                </div>
+
+                <label>COM Port</label>
+                <div style="display:flex;gap:8px">
+                    <select id="port" style="flex:1"></select>
+                    <button class="btn-secondary" onclick="refreshPorts()" title="Refresh ports">↺</button>
+                </div>
+
+                <label>Baud Rate</label>
+                <input id="baud_rate" type="number" value="9600" />
+
+                <hr class="divider" />
+
+                <div class="row2">
+                    <div>
+                        <label>Total Samples</label>
+                        <input id="total_samples" type="number" min="1" value="6" />
+                    </div>
+                    <div>
+                        <label>Delay Between (s)</label>
+                        <input id="delay_seconds" type="number" step="0.1" value="1.0" />
+                    </div>
+                </div>
+
+                <div class="row2">
+                    <div>
+                        <label>HW Refresh (s)</label>
+                        <input id="hw_refresh" type="number" step="0.01" value="0.1" />
+                    </div>
+                    <div>
+                        <label>Nominal Diameter (mm)</label>
+                        <input id="nominal_diameter" type="number" step="0.01" value="18.00" />
+                    </div>
+                </div>
+
+                <hr class="divider" />
+
+                <label>Google Sheet ID</label>
+                <input id="sheet_id" type="text" placeholder="Paste spreadsheet ID here" />
+
+                <label>Sheet Tab <span style="font-weight:400;color:var(--muted)">(blank = first tab)</span></label>
+                <input id="sheet_tab" type="text" placeholder="e.g. Sheet1" />
+
+                <button class="btn-save" onclick="saveSettings()">Save Settings</button>
+            </div>
+
+            <!-- ── RIGHT: Test + Results ── -->
+            <div>
+                <div class="card">
+                    <div class="card-title">
+                        <i class="ti ti-bolt" aria-hidden="true"></i> Run Test
+                    </div>
+
+                    <div class="battery-row">
+                        <input id="batteryName" type="text" placeholder="Enter battery name (e.g. A1-Cell-01)"
+                            onkeydown="if(event.key==='Enter') startCapture()" />
+                        <button class="btn-primary" id="captureBtn" onclick="startCapture()" style="width:auto">▶
+                            Capture</button>
+                    </div>
+
+                    <div class="log-label">Live Output</div>
+                    <div class="log-box" id="logBox">
+                        <span class="l-info">Ready. Enter a battery name and press Capture.</span>
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div class="results" id="resultsCard">
+                    <div class="card">
+                        <div class="card-title">
+                            <i class="ti ti-chart-bar" aria-hidden="true"></i> Results
+                        </div>
+
+                        <div class="stat-grid">
+                            <div class="stat">
+                                <div class="val" id="resMin">—</div>
+                                <div class="lbl">Min (mm)</div>
+                            </div>
+                            <div class="stat">
+                                <div class="val" id="resMax">—</div>
+                                <div class="lbl">Max (mm)</div>
+                            </div>
+                            <div class="stat">
+                                <div class="val tir" id="resTIR">—</div>
+                                <div class="lbl">TIR / Out-of-Round</div>
+                            </div>
+                        </div>
+
+                        <div class="samples-wrap">
+                            <div class="samples-label">Individual Samples</div>
+                            <div class="samples-grid" id="samplesGrid"></div>
+                        </div>
+
+                        <a class="sheet-link" id="sheetLink" href="#" target="_blank">
+                            <i class="ti ti-external-link" aria-hidden="true"></i> Open Google Sheet
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+    <script>
+        const $ = id => document.getElementById(id);
+        const log = $('logBox');
+
+        function showStatus(msg, type = 'info') {
+            const bar = $('statusBar');
+            bar.textContent = msg; bar.className = type; bar.style.display = 'block';
+            if (type !== 'err') setTimeout(() => bar.style.display = 'none', 5000);
+        }
+
+        function addLog(cls, text) {
+            const line = document.createElement('div');
+            line.className = cls; line.textContent = text;
+            log.appendChild(line);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        async function refreshPorts() {
+            const res = await fetch('/api/ports');
+            const ports = await res.json();
+            const sel = $('port'), cur = sel.value;
+            sel.innerHTML = '';
+            if (!ports.length) { sel.innerHTML = '<option value="">No ports found</option>'; return; }
+            ports.forEach(p => {
+                const o = document.createElement('option');
+                o.value = o.textContent = p;
+                if (p === cur) o.selected = true;
+                sel.appendChild(o);
+            });
+        }
+
+        async function loadSettings() {
+            const res = await fetch('/api/settings');
+            const s = await res.json();
+            $('baud_rate').value = s.baud_rate;
+            $('total_samples').value = s.total_samples;
+            $('delay_seconds').value = s.delay_seconds;
+            $('hw_refresh').value = s.hw_refresh;
+            $('nominal_diameter').value = s.nominal_diameter;
+            $('sheet_id').value = s.sheet_id;
+            $('sheet_tab').value = s.sheet_tab;
+            await refreshPorts();
+            const sel = $('port');
+            for (const o of sel.options) { if (o.value === s.port) { o.selected = true; break; } }
+        }
+
+        async function saveSettings() {
+            const payload = {
+                port: $('port').value, baud_rate: $('baud_rate').value,
+                total_samples: $('total_samples').value, delay_seconds: $('delay_seconds').value,
+                hw_refresh: $('hw_refresh').value, nominal_diameter: $('nominal_diameter').value,
+                sheet_id: $('sheet_id').value, sheet_tab: $('sheet_tab').value,
+            };
+            await fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+            });
+            showStatus('Settings saved.', 'ok');
+        }
+
+        async function startCapture() {
+            const name = $('batteryName').value.trim();
+            if (!name) { showStatus('Please enter a battery name.', 'err'); return; }
+            log.innerHTML = '';
+            $('resultsCard').style.display = 'none';
+            $('captureBtn').disabled = true;
+            showStatus('Capture in progress…', 'info');
+
+            const res = await fetch('/api/capture', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ battery_name: name })
+            });
+            if (!res.ok) {
+                const e = await res.json();
+                showStatus(e.error || 'Failed to start capture.', 'err');
+                $('captureBtn').disabled = false;
+                return;
+            }
+            const es = new EventSource('/api/stream');
+            es.onmessage = e => handleLog(e.data, es);
+            es.onerror = () => { es.close(); $('captureBtn').disabled = false; showStatus('Stream error.', 'err'); };
+        }
+
+        function handleLog(msg, es) {
+            const [type, ...rest] = msg.split('|');
+            const body = rest.join('|');
+            if (type === 'INFO') addLog('l-info', body);
+            else if (type === 'SAMPLE') {
+                const [idx, total, actual, deviation] = body.split('|');
+                addLog('l-sample', `  Sample ${idx}/${total}: ${actual} mm  (nominal ${deviation})`);
+            }
+            else if (type === 'WARN') addLog('l-warn', '⚠ ' + body);
+            else if (type === 'ERROR') addLog('l-error', '✖ ' + body);
+            else if (type === 'RESULT') showResults(JSON.parse(body));
+            else if (type === 'SAVED') {
+                $('sheetLink').href = `https://docs.google.com/spreadsheets/d/${body}/edit`;
+                addLog('l-success', '✔ Saved to Google Sheets');
+            }
+            else if (type === 'DONE') {
+                es.close(); $('captureBtn').disabled = false;
+                showStatus('Capture complete.', 'ok');
+            }
+        }
+
+        function showResults(r) {
+            $('resMin').textContent = r.min.toFixed(4);
+            $('resMax').textContent = r.max.toFixed(4);
+            $('resTIR').textContent = r.tir.toFixed(4);
+            const grid = $('samplesGrid');
+            grid.innerHTML = '';
+            r.points.forEach((v, i) => {
+                const chip = document.createElement('div');
+                chip.className = 'chip';
+                chip.innerHTML = `<span>S${i + 1} </span>${v.toFixed(4)} mm`;
+                grid.appendChild(chip);
+            });
+            $('resultsCard').style.display = 'block';
+            addLog('l-success', `✔ Done — Min ${r.min.toFixed(4)}  Max ${r.max.toFixed(4)}  TIR ${r.tir.toFixed(4)}`);
+        }
+
+        loadSettings();
+    </script>
+</body>
+
+</html>
