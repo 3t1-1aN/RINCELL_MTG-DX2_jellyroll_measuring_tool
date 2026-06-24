@@ -1,0 +1,171 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Josefin+Sans:wght@600;700&display=swap");
+
+:root {
+    --green: #529077;
+    --green-dk: #376b57;
+    --green-lt: #edf5f1;
+    --orange: #f9a13c;
+    --orange-lt: #fff0e0;
+    --navy: #121212;
+    --navy-lt: #232325;
+    --border: #d9d9d9;
+    --bg: #f5f5f5;
+    --surface: #ffffff;
+    --text: #202124;
+    --muted: #6e7881;
+    --error: #b71c1c;
+    --success: #529077;
+    --radius: 14px;
+    --shadow: 0 16px 36px rgba(18, 18, 18, .08);
+}
+
+body {
+    background:
+        radial-gradient(circle at top left, rgba(82, 144, 119, .16), transparent 34rem),
+        linear-gradient(180deg, #ffffff 0%, #f5f5f5 48%, #edf5f1 100%) !important;
+    color: var(--text) !important;
+    font-family: Inter, "Segoe UI", system-ui, sans-serif !important;
+}
+
+header {
+    background: #121212 !important;
+    border-bottom: 4px solid var(--green);
+    box-shadow: 0 10px 28px rgba(18, 18, 18, .18);
+}
+
+.logo-text {
+    color: #ffffff !important;
+    font-family: "Josefin Sans", Inter, sans-serif;
+    font-size: 1.55rem !important;
+    letter-spacing: .12em !important;
+}
+
+.logo-text::before {
+    content: "";
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 10px;
+    border-radius: 999px;
+    background: var(--green);
+    box-shadow: 16px 0 0 #f9a13c, 32px 0 0 #ffffff;
+    vertical-align: 2px;
+}
+
+.header-sub,
+.home-link {
+    color: rgba(255, 255, 255, .74) !important;
+}
+
+.home-link:hover {
+    color: #ffffff !important;
+}
+
+h1,
+h2,
+.card-title {
+    font-family: "Josefin Sans", Inter, sans-serif;
+}
+
+h1 {
+    letter-spacing: -.02em;
+}
+
+.hero p,
+.description,
+.meta,
+label {
+    color: var(--muted) !important;
+}
+
+.card {
+    border: 1px solid rgba(82, 144, 119, .18) !important;
+    border-radius: var(--radius) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+.card-title {
+    color: var(--text) !important;
+    letter-spacing: .12em !important;
+}
+
+input,
+select {
+    background: #ffffff !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 10px !important;
+}
+
+input:focus,
+select:focus {
+    border-color: var(--green) !important;
+    box-shadow: 0 0 0 4px rgba(82, 144, 119, .16) !important;
+}
+
+button,
+.open {
+    border-radius: 999px !important;
+}
+
+.btn-primary,
+.open {
+    background: var(--green) !important;
+    color: #ffffff !important;
+    box-shadow: 0 10px 18px rgba(82, 144, 119, .22);
+}
+
+.btn-primary:hover:not(:disabled),
+.open:hover {
+    background: var(--green-dk) !important;
+}
+
+.btn-save {
+    background: var(--navy) !important;
+    color: #ffffff !important;
+}
+
+.btn-secondary {
+    background: #ffffff !important;
+    border-color: var(--border) !important;
+}
+
+.btn-danger {
+    background: #fff5f2 !important;
+}
+
+.badge.ok,
+.status {
+    background: var(--green-lt) !important;
+    color: var(--green-dk) !important;
+}
+
+.badge.warn {
+    background: var(--orange-lt) !important;
+    color: #9b5b14 !important;
+}
+
+.log-box,
+.raw {
+    background: #121212 !important;
+    color: #dce9e3 !important;
+}
+
+.stat {
+    background: var(--green-lt) !important;
+}
+
+.stat .val,
+.sheet-link {
+    color: var(--green-dk) !important;
+}
+
+.result-badge.pass,
+#statusBar.ok {
+    background: var(--green-lt) !important;
+    color: var(--green-dk) !important;
+}
+
+#statusBar.info {
+    background: var(--orange-lt) !important;
+    color: #9b5b14 !important;
+}

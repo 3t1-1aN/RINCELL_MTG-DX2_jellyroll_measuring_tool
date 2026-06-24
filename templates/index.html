@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Rincell — Battery Diameter Tester</title>
+    <title>RINCELL — Battery Diameter Tester</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
     <style>
         :root {
             --green: #4a9e5c;
@@ -63,6 +64,13 @@
             font-weight: 700;
             letter-spacing: .02em;
             color: #000;
+        }
+
+        .home-link {
+            color: rgba(255, 255, 255, .78);
+            font-size: .82rem;
+            font-weight: 700;
+            text-decoration: none;
         }
 
         .header-sub {
@@ -346,6 +354,44 @@
             font-size: .72rem;
         }
 
+        .chip.ok {
+            border-color: rgba(74, 158, 92, .35);
+            background: var(--green-lt);
+        }
+
+        .chip.fail {
+            border-color: var(--error);
+            background: #fdf0ee;
+            color: var(--error);
+        }
+
+        .chip.fail span {
+            color: var(--error);
+        }
+
+        .result-badge {
+            display: inline-block;
+            font-size: .75rem;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            padding: 5px 12px;
+            border-radius: 20px;
+            margin-bottom: 14px;
+        }
+
+        .result-badge.pass {
+            background: var(--green-lt);
+            border: 1px solid rgba(74, 158, 92, .4);
+            color: var(--green-dk);
+        }
+
+        .result-badge.fail {
+            background: #fdf0ee;
+            border: 1px solid #f0b8b0;
+            color: var(--error);
+        }
+
         .sheet-link {
             display: inline-flex;
             align-items: center;
@@ -400,12 +446,14 @@
             margin: 18px 0;
         }
     </style>
+    <link rel="stylesheet" href="/static/rincell-theme.css" />
 </head>
 
 <body>
 
     <header>
-        <div class="logo-text">Rincell</div>
+        <div class="logo-text">RINCELL</div>
+        <a class="home-link" href="/">All Tools</a>
         <div class="header-sub">Battery Diameter Tester</div>
     </header>
 
@@ -430,6 +478,15 @@
                 <label>Baud Rate</label>
                 <input id="baud_rate" type="number" value="9600" />
 
+                <label>Arduino Motor COM Port <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+                <div style="display:flex;gap:8px">
+                    <select id="motor_port" style="flex:1"></select>
+                    <button class="btn-secondary" onclick="refreshPorts()" title="Refresh ports">↺</button>
+                </div>
+
+                <label>Arduino Motor Baud Rate</label>
+                <input id="motor_baud_rate" type="number" value="9600" />
+
                 <hr class="divider" />
 
                 <div class="row2">
@@ -453,6 +510,9 @@
                         <input id="nominal_diameter" type="number" step="0.01" value="18.00" />
                     </div>
                 </div>
+
+                <label>Diameter Tolerance (mm)</label>
+                <input id="tolerance_mm" type="number" step="0.01" min="0" value="0.15" />
 
                 <hr class="divider" />
 
@@ -491,6 +551,8 @@
                         <div class="card-title">
                             <i class="ti ti-chart-bar" aria-hidden="true"></i> Results
                         </div>
+
+                        <div class="result-badge pass" id="resultBadge">Pass</div>
 
                         <div class="stat-grid">
                             <div class="stat">
@@ -539,42 +601,79 @@
             log.scrollTop = log.scrollHeight;
         }
 
-        async function refreshPorts() {
+        function currentSettingsPayload() {
+            return {
+                port: $('port').value,
+                baud_rate: $('baud_rate').value,
+                motor_port: $('motor_port').value,
+                motor_baud_rate: $('motor_baud_rate').value,
+                total_samples: $('total_samples').value,
+                delay_seconds: $('delay_seconds').value,
+                hw_refresh: $('hw_refresh').value,
+                nominal_diameter: $('nominal_diameter').value,
+                tolerance_mm: $('tolerance_mm').value,
+                sheet_id: $('sheet_id').value,
+                sheet_tab: $('sheet_tab').value,
+            };
+        }
+
+        async function refreshPorts(preferredPort, preferredMotorPort) {
             const res = await fetch('/api/ports');
             const ports = await res.json();
-            const sel = $('port'), cur = sel.value;
+            const sel = $('port');
+            const cur = preferredPort || sel.value;
+            const motorSel = $('motor_port');
+            const motorCur = preferredMotorPort || motorSel.value;
             sel.innerHTML = '';
-            if (!ports.length) { sel.innerHTML = '<option value="">No ports found</option>'; return; }
+            motorSel.innerHTML = '<option value="">No motor controller</option>';
+            if (!ports.length && !cur) {
+                sel.innerHTML = '<option value="">No ports found</option>';
+                return;
+            }
             ports.forEach(p => {
                 const o = document.createElement('option');
                 o.value = o.textContent = p;
                 if (p === cur) o.selected = true;
                 sel.appendChild(o);
+
+                const motorOption = document.createElement('option');
+                motorOption.value = motorOption.textContent = p;
+                if (p === motorCur) motorOption.selected = true;
+                motorSel.appendChild(motorOption);
             });
+            if (cur && !ports.includes(cur)) {
+                const o = document.createElement('option');
+                o.value = cur;
+                o.textContent = `${cur} (not detected)`;
+                o.selected = true;
+                sel.appendChild(o);
+            }
+            if (motorCur && !ports.includes(motorCur)) {
+                const o = document.createElement('option');
+                o.value = motorCur;
+                o.textContent = `${motorCur} (not detected)`;
+                o.selected = true;
+                motorSel.appendChild(o);
+            }
         }
 
         async function loadSettings() {
             const res = await fetch('/api/settings');
             const s = await res.json();
             $('baud_rate').value = s.baud_rate;
+            $('motor_baud_rate').value = s.motor_baud_rate;
             $('total_samples').value = s.total_samples;
             $('delay_seconds').value = s.delay_seconds;
             $('hw_refresh').value = s.hw_refresh;
             $('nominal_diameter').value = s.nominal_diameter;
+            $('tolerance_mm').value = s.tolerance_mm;
             $('sheet_id').value = s.sheet_id;
             $('sheet_tab').value = s.sheet_tab;
-            await refreshPorts();
-            const sel = $('port');
-            for (const o of sel.options) { if (o.value === s.port) { o.selected = true; break; } }
+            await refreshPorts(s.port, s.motor_port);
         }
 
         async function saveSettings() {
-            const payload = {
-                port: $('port').value, baud_rate: $('baud_rate').value,
-                total_samples: $('total_samples').value, delay_seconds: $('delay_seconds').value,
-                hw_refresh: $('hw_refresh').value, nominal_diameter: $('nominal_diameter').value,
-                sheet_id: $('sheet_id').value, sheet_tab: $('sheet_tab').value,
-            };
+            const payload = currentSettingsPayload();
             await fetch('/api/settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
@@ -585,14 +684,17 @@
         async function startCapture() {
             const name = $('batteryName').value.trim();
             if (!name) { showStatus('Please enter a battery name.', 'err'); return; }
+            if (!$('port').value) { showStatus('Please select a COM port.', 'err'); return; }
             log.innerHTML = '';
             $('resultsCard').style.display = 'none';
+            window._lastResultPass = undefined;
+            window._lastFailedCount = 0;
             $('captureBtn').disabled = true;
             showStatus('Capture in progress…', 'info');
 
             const res = await fetch('/api/capture', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ battery_name: name })
+                body: JSON.stringify({ battery_name: name, ...currentSettingsPayload() })
             });
             if (!res.ok) {
                 const e = await res.json();
@@ -610,8 +712,10 @@
             const body = rest.join('|');
             if (type === 'INFO') addLog('l-info', body);
             else if (type === 'SAMPLE') {
-                const [idx, total, actual, deviation] = body.split('|');
-                addLog('l-sample', `  Sample ${idx}/${total}: ${actual} mm  (nominal ${deviation})`);
+                const [idx, total, actual, deviation, status] = body.split('|');
+                const cls = status === 'fail' ? 'l-warn' : 'l-sample';
+                const flag = status === 'fail' ? '  [OUT OF TOL]' : '';
+                addLog(cls, `  Sample ${idx}/${total}: ${actual} mm  (nominal ${deviation})${flag}`);
             }
             else if (type === 'WARN') addLog('l-warn', '⚠ ' + body);
             else if (type === 'ERROR') addLog('l-error', '✖ ' + body);
@@ -622,24 +726,50 @@
             }
             else if (type === 'DONE') {
                 es.close(); $('captureBtn').disabled = false;
-                showStatus('Capture complete.', 'ok');
+                if (!window._lastResultPass && window._lastResultPass !== undefined) {
+                    const n = window._lastFailedCount || 0;
+                    showStatus(`Problem — ${n} sample(s) out of tolerance.`, 'err');
+                } else if (window._lastResultPass) {
+                    const tol = $('tolerance_mm').value;
+                    showStatus(`Pass — all samples within ±${tol} mm.`, 'ok');
+                } else {
+                    showStatus('Capture complete.', 'ok');
+                }
             }
         }
 
         function showResults(r) {
+            window._lastResultPass = r.pass;
+            window._lastFailedCount = r.failed_count;
+
+            const badge = $('resultBadge');
+            if (r.pass) {
+                badge.textContent = 'Pass';
+                badge.className = 'result-badge pass';
+            } else {
+                badge.textContent = `Problem — ${r.failed_count} sample(s) out of tolerance`;
+                badge.className = 'result-badge fail';
+            }
+
             $('resMin').textContent = r.min.toFixed(4);
             $('resMax').textContent = r.max.toFixed(4);
             $('resTIR').textContent = r.tir.toFixed(4);
             const grid = $('samplesGrid');
             grid.innerHTML = '';
-            r.points.forEach((v, i) => {
+            const samples = r.samples || r.points.map((v, i) => ({ index: i + 1, value: v, ok: true }));
+            samples.forEach(s => {
                 const chip = document.createElement('div');
-                chip.className = 'chip';
-                chip.innerHTML = `<span>S${i + 1} </span>${v.toFixed(4)} mm`;
+                chip.className = 'chip ' + (s.ok ? 'ok' : 'fail');
+                const dev = s.deviation != null
+                    ? ` (${s.deviation >= 0 ? '+' : ''}${s.deviation.toFixed(4)})`
+                    : '';
+                chip.innerHTML = `<span>S${s.index} </span>${s.value.toFixed(4)} mm${dev}`;
                 grid.appendChild(chip);
             });
             $('resultsCard').style.display = 'block';
-            addLog('l-success', `✔ Done — Min ${r.min.toFixed(4)}  Max ${r.max.toFixed(4)}  TIR ${r.tir.toFixed(4)}`);
+            const status = r.pass ? 'PASS' : 'FAIL';
+            addLog(r.pass ? 'l-success' : 'l-warn',
+                `✔ Done — ${status} — Min ${r.min.toFixed(4)}  Max ${r.max.toFixed(4)}  TIR ${r.tir.toFixed(4)}`);
         }
 
         loadSettings();

@@ -5,3 +5,8 @@ __pycache__/
 *.pyc
 .venv/
 battery_master_log.csv
+build/
+dist/
+release/
+*.spec.bak
+.gstack/

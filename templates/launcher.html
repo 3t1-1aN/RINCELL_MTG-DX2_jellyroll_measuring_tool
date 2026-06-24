@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RINCELL Automation Launcher</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
+    <style>
+        :root {
+            --green: #4a9e5c;
+            --green-dk: #357a45;
+            --orange: #e07828;
+            --navy: #1b2a3b;
+            --border: #dce3ea;
+            --bg: #f4f6f8;
+            --surface: #ffffff;
+            --muted: #6b7e90;
+            --radius: 8px;
+            --shadow: 0 1px 4px rgba(27, 42, 59, .08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--navy);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+        }
+
+        header {
+            background: var(--orange);
+            height: 64px;
+            display: flex;
+            align-items: center;
+            padding: 0 32px;
+        }
+
+        .logo-text {
+            color: #000;
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: .02em;
+        }
+
+        .header-sub {
+            margin-left: auto;
+            color: rgba(255, 255, 255, .72);
+            font-size: .8rem;
+            font-weight: 700;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+        }
+
+        main {
+            max-width: 1080px;
+            margin: 32px auto;
+            padding: 0 20px 48px;
+        }
+
+        .hero {
+            margin-bottom: 22px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .hero p {
+            color: var(--muted);
+            max-width: 720px;
+            line-height: 1.5;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 22px;
+        }
+
+        .status {
+            display: inline-block;
+            margin-bottom: 14px;
+            border-radius: 20px;
+            background: #edf6ef;
+            color: var(--green-dk);
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: .06em;
+            padding: 5px 11px;
+            text-transform: uppercase;
+        }
+
+        h2 {
+            font-size: 1.15rem;
+            margin-bottom: 6px;
+        }
+
+        .device {
+            color: var(--orange);
+            font-size: .84rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .description {
+            color: var(--muted);
+            line-height: 1.5;
+            min-height: 72px;
+        }
+
+        .required {
+            border-top: 1px solid var(--border);
+            margin-top: 16px;
+            padding-top: 14px;
+        }
+
+        .required-title {
+            color: var(--muted);
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: .06em;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .chip {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            color: var(--navy);
+            font-family: 'Cascadia Code', Consolas, monospace;
+            font-size: .72rem;
+            padding: 4px 8px;
+        }
+
+        .open {
+            display: inline-block;
+            margin-top: 18px;
+            background: var(--green);
+            border-radius: 6px;
+            color: #fff;
+            font-weight: 700;
+            padding: 10px 14px;
+            text-decoration: none;
+        }
+
+        .open:hover {
+            background: var(--green-dk);
+        }
+    </style>
+    <link rel="stylesheet" href="/static/rincell-theme.css" />
+</head>
+
+<body>
+    <header>
+        <div class="logo-text">RINCELL</div>
+        <div class="header-sub">Automation Launcher</div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h1>Cell Measurement Station</h1>
+            <p>Production-ready measurement tools for Rincell jellyroll inspection. Run the OHAUS balance and diameter gauge locally, then record high-energy cell data to the configured Google Sheet.</p>
+        </section>
+
+        <section class="grid">
+            {% for automation in automations %}
+            <article class="card">
+                <span class="status">{{ automation.status }}</span>
+                <h2>{{ automation.name }}</h2>
+                <div class="device">{{ automation.device }}</div>
+                <p class="description">{{ automation.description }}</p>
+                <div class="required">
+                    <div class="required-title">Settings Used</div>
+                    <div class="chips">
+                        {% for setting in automation.required_settings %}
+                        <span class="chip">{{ setting }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <a class="open" href="{{ automation.route }}">Open Tool</a>
+            </article>
+            {% endfor %}
+        </section>
+    </main>
+</body>
+
+</html>

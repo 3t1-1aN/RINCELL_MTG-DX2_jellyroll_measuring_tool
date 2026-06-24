@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RINCELL - OHAUS Weight Reader</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
+    <style>
+        :root {
+            --green: #4a9e5c;
+            --green-dk: #357a45;
+            --green-lt: #edf6ef;
+            --orange: #e07828;
+            --orange-lt: #fdf2ea;
+            --navy: #1b2a3b;
+            --border: #dce3ea;
+            --bg: #f4f6f8;
+            --surface: #ffffff;
+            --text: #1b2a3b;
+            --muted: #6b7e90;
+            --error: #c0392b;
+            --radius: 8px;
+            --shadow: 0 1px 4px rgba(27, 42, 59, .08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
+
+        header {
+            background: var(--orange);
+            height: 64px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 0 32px;
+        }
+
+        .logo-text {
+            color: #000;
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: .02em;
+        }
+
+        .home-link {
+            color: rgba(255, 255, 255, .78);
+            font-size: .82rem;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .header-sub {
+            margin-left: auto;
+            color: rgba(255, 255, 255, .72);
+            font-size: .8rem;
+            font-weight: 700;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+        }
+
+        .page {
+            max-width: 1080px;
+            margin: 28px auto;
+            padding: 0 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        @media (max-width: 780px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 22px;
+        }
+
+        .card-title {
+            border-bottom: 1px solid var(--border);
+            color: var(--muted);
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: .08em;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        label {
+            color: var(--muted);
+            display: block;
+            font-size: .78rem;
+            font-weight: 600;
+            margin: 12px 0 4px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 6px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: .875rem;
+            outline: none;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px rgba(74, 158, 92, .15);
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            font-size: .875rem;
+            font-weight: 600;
+            padding: 9px 16px;
+        }
+
+        button:disabled {
+            opacity: .45;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: var(--green);
+            color: #fff;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--green-dk);
+        }
+
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-save {
+            background: var(--orange);
+            color: #fff;
+            width: 100%;
+            margin-top: 18px;
+        }
+
+        .sample-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .sample-row input {
+            flex: 1;
+            font-size: .95rem;
+            padding: 10px 12px;
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 18px 0;
+        }
+
+        #statusBar {
+            display: none;
+            border-radius: 6px;
+            font-size: .83rem;
+            font-weight: 500;
+            margin-bottom: 16px;
+            padding: 10px 14px;
+        }
+
+        #statusBar.ok {
+            background: var(--green-lt);
+            border: 1px solid rgba(74, 158, 92, .4);
+            color: var(--green-dk);
+        }
+
+        #statusBar.err {
+            background: #fdf0ee;
+            border: 1px solid #f0b8b0;
+            color: var(--error);
+        }
+
+        #statusBar.info {
+            background: var(--orange-lt);
+            border: 1px solid rgba(224, 120, 40, .3);
+            color: var(--orange);
+        }
+
+        .reading {
+            display: none;
+            background: var(--green-lt);
+            border: 1px solid rgba(74, 158, 92, .25);
+            border-radius: var(--radius);
+            margin-top: 18px;
+            padding: 18px;
+        }
+
+        .weight {
+            color: var(--green-dk);
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .meta {
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .raw {
+            background: var(--navy);
+            border-radius: 6px;
+            color: #c8d8e8;
+            font-family: 'Cascadia Code', Consolas, monospace;
+            font-size: .78rem;
+            margin-top: 12px;
+            padding: 10px;
+        }
+    </style>
+    <link rel="stylesheet" href="/static/rincell-theme.css" />
+</head>
+
+<body>
+    <header>
+        <div class="logo-text">RINCELL</div>
+        <a class="home-link" href="/">All Tools</a>
+        <div class="header-sub">OHAUS Weight Reader</div>
+    </header>
+
+    <div class="page">
+        <div id="statusBar"></div>
+
+        <div class="grid">
+            <div class="card">
+                <div class="card-title">Settings</div>
+
+                <label>OHAUS COM Port</label>
+                <div style="display:flex;gap:8px">
+                    <select id="ohaus_port" style="flex:1"></select>
+                    <button class="btn-secondary" onclick="refreshPorts()" title="Refresh ports">Refresh</button>
+                </div>
+
+                <label>Baud Rate</label>
+                <input id="ohaus_baud_rate" type="number" value="9600" />
+
+                <label>Read Mode</label>
+                <select id="ohaus_mode">
+                    <option value="listen">Listen for balance output</option>
+                    <option value="poll">Poll with command</option>
+                </select>
+
+                <label>Poll Command</label>
+                <input id="ohaus_command" type="text" value="IP" />
+
+                <hr class="divider" />
+
+                <label>Google Sheet ID</label>
+                <input id="ohaus_sheet_id" type="text" placeholder="Blank = do not save" />
+
+                <label>Sheet Tab</label>
+                <input id="ohaus_sheet_tab" type="text" placeholder="Weights" />
+
+                <button class="btn-save" onclick="saveSettings()">Save Settings</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Run Weight Capture</div>
+
+                <div class="sample-row">
+                    <input id="sampleName" type="text" placeholder="Enter sample name (e.g. JR-001)" onkeydown="if(event.key==='Enter') captureWeight()" />
+                    <button class="btn-primary" id="captureBtn" onclick="captureWeight()">Capture Weight</button>
+                </div>
+
+                <p class="meta">Use listen mode when the balance auto-prints or when an operator presses PRINT. Use poll mode when the balance should be queried by command.</p>
+
+                <div class="reading" id="readingCard">
+                    <div class="weight" id="weightValue">--</div>
+                    <div class="meta" id="weightMeta"></div>
+                    <div class="raw" id="rawLine"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const $ = id => document.getElementById(id);
+
+        function showStatus(msg, type = 'info') {
+            const bar = $('statusBar');
+            bar.textContent = msg;
+            bar.className = type;
+            bar.style.display = 'block';
+            if (type !== 'err') setTimeout(() => bar.style.display = 'none', 5000);
+        }
+
+        function currentSettingsPayload() {
+            return {
+                ohaus_port: $('ohaus_port').value,
+                ohaus_baud_rate: $('ohaus_baud_rate').value,
+                ohaus_mode: $('ohaus_mode').value,
+                ohaus_command: $('ohaus_command').value,
+                ohaus_sheet_id: $('ohaus_sheet_id').value,
+                ohaus_sheet_tab: $('ohaus_sheet_tab').value,
+            };
+        }
+
+        async function refreshPorts(preferredPort) {
+            const res = await fetch('/api/ports');
+            const ports = await res.json();
+            const sel = $('ohaus_port');
+            const cur = preferredPort || sel.value;
+            sel.innerHTML = '';
+            if (!ports.length && !cur) {
+                sel.innerHTML = '<option value="">No ports found</option>';
+                return;
+            }
+            ports.forEach(p => {
+                const o = document.createElement('option');
+                o.value = o.textContent = p;
+                if (p === cur) o.selected = true;
+                sel.appendChild(o);
+            });
+            if (cur && !ports.includes(cur)) {
+                const o = document.createElement('option');
+                o.value = cur;
+                o.textContent = `${cur} (not detected)`;
+                o.selected = true;
+                sel.appendChild(o);
+            }
+        }
+
+        async function loadSettings() {
+            const res = await fetch('/api/settings');
+            const s = await res.json();
+            $('ohaus_baud_rate').value = s.ohaus_baud_rate;
+            $('ohaus_mode').value = s.ohaus_mode;
+            $('ohaus_command').value = s.ohaus_command;
+            $('ohaus_sheet_id').value = s.ohaus_sheet_id;
+            $('ohaus_sheet_tab').value = s.ohaus_sheet_tab;
+            await refreshPorts(s.ohaus_port);
+        }
+
+        async function saveSettings() {
+            await fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(currentSettingsPayload())
+            });
+            showStatus('Settings saved.', 'ok');
+        }
+
+        async function captureWeight() {
+            const sampleName = $('sampleName').value.trim();
+            if (!sampleName) {
+                showStatus('Please enter a sample name.', 'err');
+                return;
+            }
+            if (!$('ohaus_port').value) {
+                showStatus('Please select a COM port.', 'err');
+                return;
+            }
+
+            $('captureBtn').disabled = true;
+            $('readingCard').style.display = 'none';
+            showStatus('Waiting for weight reading...', 'info');
+
+            const res = await fetch('/api/weight/capture', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sample_name: sampleName, ...currentSettingsPayload() })
+            });
+            const body = await res.json();
+            $('captureBtn').disabled = false;
+
+            if (!res.ok || body.error) {
+                showStatus(body.error || 'Failed to capture weight.', 'err');
+                return;
+            }
+
+            const r = body.reading;
+            $('weightValue').textContent = `${Number(r.weight).toFixed(4)} ${r.unit}`;
+            $('weightMeta').textContent = `${r.timestamp} | ${r.stable ? 'stable' : 'unstable'}${r.mode ? ' | ' + r.mode : ''}`;
+            $('rawLine').textContent = `raw=${JSON.stringify(r.raw)}`;
+            $('readingCard').style.display = 'block';
+
+            if (body.save_error) {
+                showStatus(`Captured, but Google Sheets save failed: ${body.save_error}`, 'err');
+            } else if (body.sheet_id) {
+                showStatus('Captured and saved to Google Sheets.', 'ok');
+            } else {
+                showStatus('Captured. Add a Google Sheet ID to save automatically.', 'ok');
+            }
+        }
+
+        loadSettings();
+    </script>
+</body>
+
+</html>

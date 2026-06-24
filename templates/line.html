@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RINCELL - Production Line</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
+    <style>
+        :root {
+            --green: #4a9e5c;
+            --green-dk: #357a45;
+            --green-lt: #edf6ef;
+            --orange: #e07828;
+            --orange-lt: #fdf2ea;
+            --navy: #1b2a3b;
+            --border: #dce3ea;
+            --bg: #f4f6f8;
+            --surface: #ffffff;
+            --text: #1b2a3b;
+            --muted: #6b7e90;
+            --error: #c0392b;
+            --radius: 8px;
+            --shadow: 0 1px 4px rgba(27, 42, 59, .08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
+
+        header {
+            background: var(--orange);
+            height: 64px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 0 32px;
+        }
+
+        .logo-text {
+            color: #000;
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: .02em;
+        }
+
+        .home-link {
+            color: rgba(255, 255, 255, .78);
+            font-size: .82rem;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .header-sub {
+            margin-left: auto;
+            color: rgba(255, 255, 255, .72);
+            font-size: .8rem;
+            font-weight: 700;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+        }
+
+        .page {
+            max-width: 1180px;
+            margin: 28px auto;
+            padding: 0 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 22px;
+        }
+
+        .card-title {
+            border-bottom: 1px solid var(--border);
+            color: var(--muted);
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: .08em;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        label {
+            color: var(--muted);
+            display: block;
+            font-size: .78rem;
+            font-weight: 600;
+            margin: 12px 0 4px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 9px 10px;
+            border-radius: 6px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: .9rem;
+            outline: none;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px rgba(74, 158, 92, .15);
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            font-size: .875rem;
+            font-weight: 700;
+            padding: 10px 14px;
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: .45;
+        }
+
+        .btn-primary {
+            background: var(--green);
+            color: #fff;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--green-dk);
+        }
+
+        .btn-secondary {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-danger {
+            background: #fdf0ee;
+            border: 1px solid #f0b8b0;
+            color: var(--error);
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .row input,
+        .row select {
+            flex: 1;
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 18px 0;
+        }
+
+        #statusBar {
+            display: none;
+            border-radius: 6px;
+            font-size: .86rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding: 10px 14px;
+        }
+
+        #statusBar.ok {
+            background: var(--green-lt);
+            border: 1px solid rgba(74, 158, 92, .4);
+            color: var(--green-dk);
+        }
+
+        #statusBar.err {
+            background: #fdf0ee;
+            border: 1px solid #f0b8b0;
+            color: var(--error);
+        }
+
+        #statusBar.info {
+            background: var(--orange-lt);
+            border: 1px solid rgba(224, 120, 40, .3);
+            color: var(--orange);
+        }
+
+        .badge {
+            display: inline-block;
+            border-radius: 18px;
+            font-size: .72rem;
+            font-weight: 800;
+            letter-spacing: .05em;
+            padding: 5px 10px;
+            text-transform: uppercase;
+        }
+
+        .badge.ok {
+            background: var(--green-lt);
+            color: var(--green-dk);
+        }
+
+        .badge.warn {
+            background: var(--orange-lt);
+            color: var(--orange);
+        }
+
+        .badge.err {
+            background: #fdf0ee;
+            color: var(--error);
+        }
+
+        .queue {
+            display: grid;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .item {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #fff;
+            padding: 12px;
+        }
+
+        .item-head {
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .item-id {
+            font-size: 1rem;
+            font-weight: 800;
+        }
+
+        .meta {
+            color: var(--muted);
+            font-size: .82rem;
+            line-height: 1.5;
+        }
+
+        .empty {
+            color: var(--muted);
+            border: 1px dashed var(--border);
+            border-radius: 8px;
+            padding: 18px;
+            text-align: center;
+        }
+
+        .log-box {
+            background: var(--navy);
+            border-radius: 6px;
+            color: #c8d8e8;
+            font-family: 'Cascadia Code', Consolas, monospace;
+            font-size: .78rem;
+            height: 160px;
+            line-height: 1.6;
+            margin-top: 12px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+    </style>
+    <link rel="stylesheet" href="/static/rincell-theme.css" />
+</head>
+
+<body>
+    <header>
+        <div class="logo-text">RINCELL</div>
+        <a class="home-link" href="/">All Tools</a>
+        <div class="header-sub">Production Line Workflow</div>
+    </header>
+
+    <div class="page">
+        <div id="statusBar"></div>
+
+        <div class="grid">
+            <section class="card">
+                <div class="card-title">Weight Station - OHAUS Listener</div>
+
+                <label>Jellyroll ID</label>
+                <div class="row">
+                    <input id="jellyrollId" type="text" placeholder="Scan or enter ID, then press Enter" onkeydown="if(event.key==='Enter') armWeight()" />
+                    <button class="btn-primary" onclick="armWeight()">Arm Next Weight</button>
+                </div>
+
+                <div style="margin-top:12px">
+                    <span class="badge warn" id="armedBadge">No ID Armed</span>
+                    <span class="badge warn" id="listenerBadge">Listener Stopped</span>
+                </div>
+
+                <hr class="divider" />
+
+                <label>OHAUS COM Port</label>
+                <div class="row">
+                    <select id="ohaus_port"></select>
+                    <button class="btn-secondary" onclick="refreshPorts()">Refresh</button>
+                </div>
+
+                <div class="row">
+                    <div style="flex:1">
+                        <label>OHAUS Baud Rate</label>
+                        <input id="ohaus_baud_rate" type="number" value="9600" />
+                    </div>
+                    <div style="flex:1">
+                        <label>OHAUS Mode</label>
+                        <select id="ohaus_mode">
+                            <option value="listen">Listen / PRINT</option>
+                            <option value="poll">Continuous Poll</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <button class="btn-primary" onclick="startListener()">Start Listener</button>
+                    <button class="btn-danger" onclick="stopListener()">Stop Listener</button>
+                </div>
+
+                <div class="log-box" id="weightLog">Waiting for OHAUS listener...</div>
+            </section>
+
+            <section class="card">
+                <div class="card-title">Diameter Station - Gauge Capture</div>
+
+                <label>Diameter Gauge COM Port</label>
+                <div class="row">
+                    <select id="port"></select>
+                    <button class="btn-secondary" onclick="refreshPorts()">Refresh</button>
+                </div>
+
+                <label>Arduino Motor COM Port</label>
+                <div class="row">
+                    <select id="motor_port"></select>
+                    <button class="btn-secondary" onclick="refreshPorts()">Refresh</button>
+                </div>
+
+                <div class="row">
+                    <div style="flex:1">
+                        <label>Gauge Baud Rate</label>
+                        <input id="baud_rate" type="number" value="9600" />
+                    </div>
+                    <div style="flex:1">
+                        <label>Arduino Motor Baud Rate</label>
+                        <input id="motor_baud_rate" type="number" value="9600" />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div style="flex:1">
+                        <label>Total Samples</label>
+                        <input id="total_samples" type="number" min="1" value="6" />
+                    </div>
+                    <div style="flex:1">
+                        <label>Stepper Timeout (s)</label>
+                        <input id="motor_timeout_seconds" type="number" step="0.1" value="10.0" />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div style="flex:1">
+                        <label>Nominal Diameter (mm)</label>
+                        <input id="nominal_diameter" type="number" step="0.01" value="17.15" />
+                    </div>
+                    <div style="flex:1">
+                        <label>Tolerance (mm)</label>
+                        <input id="tolerance_mm" type="number" step="0.01" value="0.15" />
+                    </div>
+                </div>
+
+                <hr class="divider" />
+
+                <label>Google Sheet ID</label>
+                <input id="sheet_id" type="text" placeholder="Combined production sheet ID" />
+
+                <label>Sheet Tab</label>
+                <input id="sheet_tab" type="text" placeholder="Blank = first tab" />
+
+                <button class="btn-secondary" style="margin-top:14px;width:100%" onclick="saveSettings()">Save Settings</button>
+            </section>
+        </div>
+
+        <section class="card" style="margin-top:20px">
+            <div class="card-title">Jellyrolls Waiting for Diameter</div>
+            <div class="queue" id="pendingQueue"></div>
+        </section>
+
+        <section class="card" style="margin-top:20px">
+            <div class="card-title">Completed This Session</div>
+            <div class="queue" id="completedQueue"></div>
+        </section>
+    </div>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        let currentState = null;
+
+        function showStatus(msg, type = 'info') {
+            const bar = $('statusBar');
+            bar.textContent = msg;
+            bar.className = type;
+            bar.style.display = 'block';
+            if (type !== 'err') setTimeout(() => bar.style.display = 'none', 5000);
+        }
+
+        function addWeightLog(text) {
+            const log = $('weightLog');
+            const line = document.createElement('div');
+            line.textContent = text;
+            log.appendChild(line);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function currentSettingsPayload() {
+            return {
+                port: $('port').value,
+                baud_rate: $('baud_rate').value,
+                motor_port: $('motor_port').value,
+                motor_baud_rate: $('motor_baud_rate').value,
+                motor_timeout_seconds: $('motor_timeout_seconds').value,
+                total_samples: $('total_samples').value,
+                nominal_diameter: $('nominal_diameter').value,
+                tolerance_mm: $('tolerance_mm').value,
+                sheet_id: $('sheet_id').value,
+                sheet_tab: $('sheet_tab').value,
+                ohaus_port: $('ohaus_port').value,
+                ohaus_baud_rate: $('ohaus_baud_rate').value,
+                ohaus_mode: $('ohaus_mode').value,
+            };
+        }
+
+        async function refreshPorts() {
+            const res = await fetch('/api/ports');
+            const ports = await res.json();
+            fillPortSelect($('port'), ports, $('port').value);
+            fillPortSelect($('motor_port'), ports, $('motor_port').value, 'No motor controller');
+            fillPortSelect($('ohaus_port'), ports, $('ohaus_port').value);
+        }
+
+        function fillPortSelect(sel, ports, current, emptyLabel) {
+            sel.innerHTML = '';
+            if (emptyLabel) {
+                const empty = document.createElement('option');
+                empty.value = '';
+                empty.textContent = emptyLabel;
+                sel.appendChild(empty);
+            }
+            if (!ports.length && !current) {
+                sel.innerHTML = '<option value="">No ports found</option>';
+                return;
+            }
+            ports.forEach(p => {
+                const o = document.createElement('option');
+                o.value = o.textContent = p;
+                if (p === current) o.selected = true;
+                sel.appendChild(o);
+            });
+            if (current && !ports.includes(current)) {
+                const o = document.createElement('option');
+                o.value = current;
+                o.textContent = `${current} (not detected)`;
+                o.selected = true;
+                sel.appendChild(o);
+            }
+        }
+
+        async function loadSettings() {
+            const res = await fetch('/api/settings');
+            const s = await res.json();
+            $('baud_rate').value = s.baud_rate;
+            $('motor_baud_rate').value = s.motor_baud_rate;
+            $('motor_timeout_seconds').value = s.motor_timeout_seconds;
+            $('total_samples').value = s.total_samples;
+            $('nominal_diameter').value = s.nominal_diameter;
+            $('tolerance_mm').value = s.tolerance_mm;
+            $('sheet_id').value = s.sheet_id;
+            $('sheet_tab').value = s.sheet_tab;
+            $('ohaus_baud_rate').value = s.ohaus_baud_rate;
+            $('ohaus_mode').value = s.ohaus_mode;
+
+            const ports = await (await fetch('/api/ports')).json();
+            fillPortSelect($('port'), ports, s.port);
+            fillPortSelect($('motor_port'), ports, s.motor_port, 'No motor controller');
+            fillPortSelect($('ohaus_port'), ports, s.ohaus_port);
+        }
+
+        async function saveSettings() {
+            await fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(currentSettingsPayload())
+            });
+            showStatus('Settings saved.', 'ok');
+        }
+
+        async function armWeight() {
+            const jellyrollId = $('jellyrollId').value.trim();
+            if (!jellyrollId) {
+                showStatus('Enter or scan a jellyroll ID first.', 'err');
+                return;
+            }
+            await fetch('/api/line/weight/arm', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ jellyroll_id: jellyrollId })
+            });
+            showStatus(`Armed ${jellyrollId}. Place it on the OHAUS balance or press PRINT.`, 'ok');
+        }
+
+        async function startListener() {
+            await saveSettings();
+            const res = await fetch('/api/line/listener/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(currentSettingsPayload())
+            });
+            const body = await res.json();
+            if (!res.ok || body.error) {
+                showStatus(body.error || 'Failed to start listener.', 'err');
+                return;
+            }
+            showStatus(body.started ? 'OHAUS listener started.' : 'OHAUS listener is already running.', 'ok');
+        }
+
+        async function stopListener() {
+            await fetch('/api/line/listener/stop', { method: 'POST' });
+            showStatus('OHAUS listener stopping.', 'info');
+        }
+
+        async function captureDiameter(jellyrollId) {
+            await saveSettings();
+            const res = await fetch('/api/line/diameter', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ jellyroll_id: jellyrollId, ...currentSettingsPayload() })
+            });
+            const body = await res.json();
+            if (!res.ok || body.error) {
+                showStatus(body.error || 'Failed to start diameter capture.', 'err');
+                return;
+            }
+            showStatus(`Started diameter capture for ${jellyrollId}.`, 'info');
+        }
+
+        function renderState(state) {
+            currentState = state;
+            const armed = state.armed_jellyroll_id;
+            $('armedBadge').textContent = armed ? `Armed: ${armed}` : 'No ID Armed';
+            $('armedBadge').className = `badge ${armed ? 'ok' : 'warn'}`;
+
+            const listener = state.listener || {};
+            $('listenerBadge').textContent = listener.running ? `Listening: ${listener.port}` : 'Listener Stopped';
+            $('listenerBadge').className = `badge ${listener.running ? 'ok' : 'warn'}`;
+
+            renderQueue($('pendingQueue'), state.pending || [], true);
+            renderQueue($('completedQueue'), state.completed || [], false);
+        }
+
+        function renderQueue(container, items, showAction) {
+            container.innerHTML = '';
+            if (!items.length) {
+                container.innerHTML = '<div class="empty">No jellyrolls in this section.</div>';
+                return;
+            }
+            items.forEach(item => {
+                const weight = item.weight_reading;
+                const diameter = item.diameter_result;
+                const status = formatStatus(item.status);
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.innerHTML = `
+                    <div class="item-head">
+                        <div>
+                            <div class="item-id">${h(item.jellyroll_id)}</div>
+                            <div class="meta">${h(status)}${item.row_number ? ` | Sheet row ${item.row_number}` : ''}</div>
+                        </div>
+                        <span class="badge ${statusClass(item.status)}">${h(status)}</span>
+                    </div>
+                    <div class="meta">
+                        ${weight ? `Weight: ${Number(weight.weight).toFixed(4)} ${weight.unit} (${weight.stable ? 'stable' : 'unstable'})` : 'Weight: pending'}<br>
+                        ${diameter ? `Diameter: ${diameter.pass ? 'Pass' : 'Fail'} | TIR ${Number(diameter.tir).toFixed(4)} mm` : 'Diameter: pending'}
+                        ${item.error ? `<br>Error: ${h(item.error)}` : ''}
+                    </div>
+                `;
+                if (showAction) {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn-primary';
+                    btn.style.marginTop = '10px';
+                    btn.textContent = item.status === 'measuring_diameter' ? 'Measuring...' : 'Capture Diameter';
+                    btn.disabled = item.status === 'measuring_diameter';
+                    btn.onclick = () => captureDiameter(item.jellyroll_id);
+                    div.appendChild(btn);
+                }
+                container.appendChild(div);
+            });
+        }
+
+        function formatStatus(status) {
+            return String(status || '').replaceAll('_', ' ');
+        }
+
+        function statusClass(status) {
+            if (status === 'complete' || status === 'waiting_diameter') return 'ok';
+            if (status === 'error' || status === 'check_diameter') return 'err';
+            return 'warn';
+        }
+
+        function h(value) {
+            return String(value ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function handleEvent(event) {
+            const type = event.type;
+            const payload = event.payload || {};
+            if (payload.state) renderState(payload.state);
+            else if (type === 'state') renderState(payload);
+
+            if (type === 'weight_assigned' && payload.item) {
+                addWeightLog(`${payload.item.jellyroll_id}: ${Number(payload.item.weight_reading.weight).toFixed(4)} ${payload.item.weight_reading.unit}`);
+                $('jellyrollId').value = '';
+            } else if (type === 'unassigned_weight') {
+                addWeightLog(`Unassigned reading: ${Number(payload.reading.weight).toFixed(4)} ${payload.reading.unit}`);
+                showStatus('OHAUS sent a reading, but no jellyroll ID was armed.', 'err');
+            } else if (type === 'listener_error') {
+                showStatus(`OHAUS listener error: ${payload.error}`, 'err');
+            } else if (type === 'diameter_complete' && payload.item) {
+                showStatus(`Completed ${payload.item.jellyroll_id}.`, payload.item.status === 'complete' ? 'ok' : 'err');
+            } else if (type === 'diameter_log') {
+                addWeightLog(`Diameter: ${payload.message}`);
+            }
+        }
+
+        function connectEvents() {
+            const es = new EventSource('/api/line/events');
+            es.onmessage = event => handleEvent(JSON.parse(event.data));
+            es.onerror = () => showStatus('Line event stream disconnected. Refresh if it does not recover.', 'err');
+        }
+
+        async function boot() {
+            await loadSettings();
+            const state = await (await fetch('/api/line/state')).json();
+            renderState(state);
+            connectEvents();
+        }
+
+        boot();
+    </script>
+</body>
+
+</html>
