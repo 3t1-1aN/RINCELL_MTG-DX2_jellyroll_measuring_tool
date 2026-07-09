@@ -2,17 +2,18 @@
 
 from pathlib import Path
 
-ROOT = Path.cwd()
+# Spec lives in packaging/; app sources live one level up.
+ROOT = Path(SPECPATH).resolve().parent
 
 
 a = Analysis(
-    ["launcher.py"],
+    [str(ROOT / "launcher.py")],
     pathex=[str(ROOT)],
     binaries=[],
     datas=[
-        ("templates", "templates"),
-        ("static", "static"),
-        (".env.example", "."),
+        (str(ROOT / "templates"), "templates"),
+        (str(ROOT / "static"), "static"),
+        (str(ROOT / ".env.example"), "."),
     ],
     hiddenimports=[],
     hookspath=[],
