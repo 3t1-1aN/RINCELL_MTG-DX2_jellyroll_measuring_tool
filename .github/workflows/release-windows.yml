@@ -1,0 +1,92 @@
+name: Release Windows App
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version without v prefix (e.g. 0.1.0). Leave empty to use the run id."
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Resolve version
+        id: version
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $raw = "${{ inputs.version }}".Trim()
+            if (-not $raw) {
+              $raw = "ci-${{ github.run_number }}"
+            }
+          } else {
+            $raw = "${{ github.ref_name }}"
+          }
+
+          if ($raw -match '^[vV](.+)$') {
+            $version = $Matches[1]
+          } else {
+            $version = $raw
+          }
+          if (-not $version) {
+            throw "Could not resolve a release version."
+          }
+
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "tag=v$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "Resolved version: $version"
+
+      - name: Build Windows package
+        shell: pwsh
+        run: |
+          powershell -ExecutionPolicy Bypass -File .\packaging\build_windows.ps1 -Version "${{ steps.version.outputs.version }}"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rincell-Measurement-Tools-${{ steps.version.outputs.version }}
+          path: release/Rincell-Measurement-Tools-${{ steps.version.outputs.version }}.zip
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Rincell Measurement Tools ${{ steps.version.outputs.version }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          body: |
+            ## Install
+
+            1. Download `Rincell-Measurement-Tools-${{ steps.version.outputs.version }}.zip`
+            2. Extract the folder
+            3. Double-click `Start Rincell.bat`
+            4. Open http://127.0.0.1:5000/ if the browser does not open
+
+            ## First-run notes
+
+            - Place your Google `credentials.json` beside the launcher if Sheets logging is needed
+            - Save COM ports and settings in the app UI
+            - Do not commit or share `.env`, `credentials.json`, or `token.json`
+          files: |
+            release/Rincell-Measurement-Tools-${{ steps.version.outputs.version }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

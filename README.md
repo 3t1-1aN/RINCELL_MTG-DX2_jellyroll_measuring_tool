@@ -68,9 +68,18 @@ The gauge reports deviation from nominal. Actual diameter is:
 
 Positive values add to nominal; negative values subtract.
 
-## Windows packaging
+## Windows packaging / GitHub Releases
 
-Build the operator release on Windows:
+Preferred path from Linux: push a version tag and let GitHub Actions build the Windows zip.
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+Operators download the zip from the repo Releases page.
+
+Local Windows build (optional):
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\packaging\build_windows.ps1 -Version 0.1.0
