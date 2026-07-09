@@ -447,6 +447,7 @@
         }
     </style>
     <link rel="stylesheet" href="/static/rincell-theme.css" />
+    <link rel="stylesheet" href="/static/diameter-viz.css" />
 </head>
 
 <body>
@@ -569,6 +570,8 @@
                             </div>
                         </div>
 
+                        <div class="diameter-viz-panel" id="diameterViz"></div>
+
                         <div class="samples-wrap">
                             <div class="samples-label">Individual Samples</div>
                             <div class="samples-grid" id="samplesGrid"></div>
@@ -584,6 +587,7 @@
     </div>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+    <script src="/static/diameter-viz.js"></script>
     <script>
         const $ = id => document.getElementById(id);
         const log = $('logBox');
@@ -754,6 +758,11 @@
             $('resMin').textContent = r.min.toFixed(4);
             $('resMax').textContent = r.max.toFixed(4);
             $('resTIR').textContent = r.tir.toFixed(4);
+            renderDiameterViz($('diameterViz'), r, {
+                size: 560,
+                digits: 3,
+                title: 'Cross-section profile',
+            });
             const grid = $('samplesGrid');
             grid.innerHTML = '';
             const samples = r.samples || r.points.map((v, i) => ({ index: i + 1, value: v, ok: true }));

@@ -11,7 +11,7 @@ from .automations import list_automations
 from .config import ASSET_DIR, get_settings, save_settings, settings_with_overrides
 from .devices.diameter import capture_diameter
 from .devices.ohaus import read_once
-from .google_sheets import append_diameter_result, append_weight_result, create_or_update_weight_row, update_diameter_row
+from .google_sheets import append_diameter_result, append_line_diameter_result, append_weight_result, create_or_update_weight_row
 from .line import LineState, OhausListener
 
 _log_queue: Queue = Queue()
@@ -47,7 +47,7 @@ def _handle_ohaus_reading(reading: dict) -> None:
     row_number = None
     sheet_error = None
     try:
-        row_number = create_or_update_weight_row(armed_id, reading, settings)
+        create_or_update_weight_row(armed_id, reading, settings)
     except Exception as exc:
         sheet_error = f"Google Sheets weight error: {exc}"
 
@@ -86,9 +86,14 @@ def _run_line_diameter_capture(jellyroll_id: str, settings: dict) -> None:
         push_line_event("line_error", {"jellyroll_id": jellyroll_id, "error": "Diameter capture failed.", "state": _line_state.snapshot()})
         return
 
-    row_number = item.row_number if item else None
+    weight_reading = item.weight_reading if item else None
     try:
-        row_number = update_diameter_row(jellyroll_id, result, settings, row_number=row_number)
+        row_number = append_line_diameter_result(
+            jellyroll_id,
+            result,
+            settings,
+            weight_reading=weight_reading,
+        )
     except Exception as exc:
         _line_state.mark_error(jellyroll_id, f"Google Sheets diameter error: {exc}")
         push_line_event("line_error", {"jellyroll_id": jellyroll_id, "error": str(exc), "state": _line_state.snapshot()})

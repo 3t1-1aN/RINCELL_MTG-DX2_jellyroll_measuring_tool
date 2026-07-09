@@ -101,10 +101,16 @@ def capture_samples_with_motor(
     motor_ser: serial.Serial,
     settings: dict,
     push_log: LogFn,
+    controller: StepperController | None = None,
 ) -> list[dict]:
     sample_records = []
     total = settings["total_samples"]
-    controller = StepperController(motor_ser, push_log, timeout_seconds=settings["motor_timeout_seconds"])
+    if controller is None:
+        controller = StepperController(
+            motor_ser,
+            push_log,
+            timeout_seconds=settings["motor_timeout_seconds"],
+        )
 
     try:
         position = controller.start_scan(total)
@@ -130,12 +136,6 @@ def capture_samples_with_motor(
 
 
 def capture_diameter(settings: dict, battery_name: str, push_log: LogFn) -> dict | None:
-    push_log(f"INFO|Starting capture for: {battery_name}")
-    push_log(
-        f"INFO|Settings - {settings['total_samples']} samples, "
-        f"{settings['delay_seconds']}s delay, port {settings['port']}"
-    )
-
     try:
         motor_port = settings.get("motor_port", "")
         if motor_port and motor_port == settings["port"]:
@@ -149,15 +149,26 @@ def capture_diameter(settings: dict, battery_name: str, push_log: LogFn) -> dict
             parity=serial.PARITY_NONE,
         ) as ser:
             if motor_port:
-                push_log(f"INFO|Motor sync enabled on port {motor_port}")
                 with serial.Serial(
                     motor_port,
                     settings["motor_baud_rate"],
                     timeout=0.2,
                     parity=serial.PARITY_NONE,
                 ) as motor_ser:
-                    time.sleep(2.0)
-                    sample_records = capture_samples_with_motor(ser, motor_ser, settings, push_log)
+                    time.sleep(2.5)
+                    controller = StepperController(
+                        motor_ser,
+                        push_log,
+                        timeout_seconds=settings["motor_timeout_seconds"],
+                    )
+                    controller.wait_for_boot()
+                    sample_records = capture_samples_with_motor(
+                        ser,
+                        motor_ser,
+                        settings,
+                        push_log,
+                        controller=controller,
+                    )
             else:
                 sample_records = capture_samples(ser, settings, push_log)
     except Exception as exc:

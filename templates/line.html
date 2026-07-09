@@ -288,8 +288,21 @@
             overflow-y: auto;
             padding: 10px;
         }
+
+        .item-body {
+            display: grid;
+            gap: 12px;
+        }
+
+        @media (min-width: 720px) {
+            .item-body.has-viz {
+                grid-template-columns: 1fr auto;
+                align-items: start;
+            }
+        }
     </style>
     <link rel="stylesheet" href="/static/rincell-theme.css" />
+    <link rel="stylesheet" href="/static/diameter-viz.css" />
 </head>
 
 <body>
@@ -304,7 +317,7 @@
 
         <div class="grid">
             <section class="card">
-                <div class="card-title">Weight Station - OHAUS Listener</div>
+                <div class="card-title"><span class="theme-icon" aria-hidden="true"></span>Weight Station - OHAUS Listener</div>
 
                 <label>Jellyroll ID</label>
                 <div class="row">
@@ -348,7 +361,7 @@
             </section>
 
             <section class="card">
-                <div class="card-title">Diameter Station - Gauge Capture</div>
+                <div class="card-title"><span class="theme-icon" aria-hidden="true"></span>Diameter Station - Gauge Capture</div>
 
                 <label>Diameter Gauge COM Port</label>
                 <div class="row">
@@ -408,16 +421,17 @@
         </div>
 
         <section class="card" style="margin-top:20px">
-            <div class="card-title">Jellyrolls Waiting for Diameter</div>
+            <div class="card-title"><span class="theme-icon" aria-hidden="true"></span>Jellyrolls Waiting for Diameter</div>
             <div class="queue" id="pendingQueue"></div>
         </section>
 
         <section class="card" style="margin-top:20px">
-            <div class="card-title">Completed This Session</div>
+            <div class="card-title"><span class="theme-icon" aria-hidden="true"></span>Completed This Session</div>
             <div class="queue" id="completedQueue"></div>
         </section>
     </div>
 
+    <script src="/static/diameter-viz.js"></script>
     <script>
         const $ = id => document.getElementById(id);
         let currentState = null;
@@ -603,12 +617,25 @@
                         </div>
                         <span class="badge ${statusClass(item.status)}">${h(status)}</span>
                     </div>
-                    <div class="meta">
-                        ${weight ? `Weight: ${Number(weight.weight).toFixed(4)} ${weight.unit} (${weight.stable ? 'stable' : 'unstable'})` : 'Weight: pending'}<br>
-                        ${diameter ? `Diameter: ${diameter.pass ? 'Pass' : 'Fail'} | TIR ${Number(diameter.tir).toFixed(4)} mm` : 'Diameter: pending'}
-                        ${item.error ? `<br>Error: ${h(item.error)}` : ''}
+                    <div class="item-body${diameter ? ' has-viz' : ''}">
+                        <div class="meta">
+                            ${weight ? `Weight: ${Number(weight.weight).toFixed(4)} ${weight.unit} (${weight.stable ? 'stable' : 'unstable'})` : 'Weight: pending'}<br>
+                            ${diameter ? `Diameter: ${diameter.pass ? 'Pass' : 'Fail'} | TIR ${Number(diameter.tir).toFixed(4)} mm` : 'Diameter: pending'}
+                            ${diameter && diameter.min_angle != null ? `<br>Min ${Number(diameter.min).toFixed(4)} mm @ ${Number(diameter.min_angle).toFixed(0)}°` : ''}
+                            ${diameter && diameter.max_angle != null ? `<br>Max ${Number(diameter.max).toFixed(4)} mm @ ${Number(diameter.max_angle).toFixed(0)}°` : ''}
+                            ${item.error ? `<br>Error: ${h(item.error)}` : ''}
+                        </div>
+                        ${diameter ? '<div class="diameter-viz-inline" data-viz></div>' : ''}
                     </div>
                 `;
+                if (diameter) {
+                    const vizHost = div.querySelector('[data-viz]');
+                    renderDiameterViz(vizHost, diameter, {
+                        size: 380,
+                        digits: 3,
+                        showLegend: false,
+                    });
+                }
                 if (showAction) {
                     const btn = document.createElement('button');
                     btn.className = 'btn-primary';
