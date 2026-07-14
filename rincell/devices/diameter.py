@@ -185,6 +185,7 @@ def capture_diameter(settings: dict, battery_name: str, push_log: LogFn) -> dict
     max_sample = max(sample_records, key=lambda sample: sample["value"])
     mn = min(pts)
     mx = max(pts)
+    avg = sum(pts) / len(pts)
     tir = mx - mn
     eval_result = evaluate_samples(sample_records, settings["nominal_diameter"], settings["tolerance_mm"])
     result = {
@@ -195,6 +196,7 @@ def capture_diameter(settings: dict, battery_name: str, push_log: LogFn) -> dict
         "max": mx,
         "max_angle": max_sample.get("angle"),
         "max_sample_index": max_sample["index"],
+        "avg": avg,
         "tir": tir,
         "name": battery_name,
         **eval_result,
