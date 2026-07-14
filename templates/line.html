@@ -623,6 +623,7 @@
                             ${diameter ? `Diameter: ${diameter.pass ? 'Pass' : 'Fail'} | TIR ${Number(diameter.tir).toFixed(4)} mm` : 'Diameter: pending'}
                             ${diameter && diameter.min_angle != null ? `<br>Min ${Number(diameter.min).toFixed(4)} mm @ ${Number(diameter.min_angle).toFixed(0)}°` : ''}
                             ${diameter && diameter.max_angle != null ? `<br>Max ${Number(diameter.max).toFixed(4)} mm @ ${Number(diameter.max_angle).toFixed(0)}°` : ''}
+                            ${diameter && diameter.avg != null ? `<br>Avg ${Number(diameter.avg).toFixed(4)} mm` : ''}
                             ${item.error ? `<br>Error: ${h(item.error)}` : ''}
                         </div>
                         ${diameter ? '<div class="diameter-viz-inline" data-viz></div>' : ''}

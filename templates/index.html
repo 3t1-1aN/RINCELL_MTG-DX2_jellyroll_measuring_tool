@@ -99,6 +99,10 @@
             .grid {
                 grid-template-columns: 1fr;
             }
+
+            .stat-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
         /* ── Cards ── */
@@ -289,7 +293,7 @@
 
         .stat-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 12px;
             margin-bottom: 14px;
         }
@@ -565,6 +569,10 @@
                                 <div class="lbl">Max (mm)</div>
                             </div>
                             <div class="stat">
+                                <div class="val" id="resAvg">—</div>
+                                <div class="lbl">Avg (mm)</div>
+                            </div>
+                            <div class="stat">
                                 <div class="val tir" id="resTIR">—</div>
                                 <div class="lbl">TIR / Out-of-Round</div>
                             </div>
@@ -755,8 +763,14 @@
                 badge.className = 'result-badge fail';
             }
 
+            const avg = r.avg != null
+                ? r.avg
+                : (r.points && r.points.length
+                    ? r.points.reduce((sum, v) => sum + v, 0) / r.points.length
+                    : null);
             $('resMin').textContent = r.min.toFixed(4);
             $('resMax').textContent = r.max.toFixed(4);
+            $('resAvg').textContent = avg != null ? avg.toFixed(4) : '—';
             $('resTIR').textContent = r.tir.toFixed(4);
             renderDiameterViz($('diameterViz'), r, {
                 size: 560,
@@ -777,8 +791,9 @@
             });
             $('resultsCard').style.display = 'block';
             const status = r.pass ? 'PASS' : 'FAIL';
+            const avgText = avg != null ? `  Avg ${avg.toFixed(4)}` : '';
             addLog(r.pass ? 'l-success' : 'l-warn',
-                `✔ Done — ${status} — Min ${r.min.toFixed(4)}  Max ${r.max.toFixed(4)}  TIR ${r.tir.toFixed(4)}`);
+                `✔ Done — ${status} — Min ${r.min.toFixed(4)}  Max ${r.max.toFixed(4)}${avgText}  TIR ${r.tir.toFixed(4)}`);
         }
 
         loadSettings();
