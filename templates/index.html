@@ -496,8 +496,9 @@
 
                 <div class="row2">
                     <div>
-                        <label>Total Samples</label>
-                        <input id="total_samples" type="number" min="1" value="6" />
+                        <label>Radius Samples</label>
+                        <input id="total_samples" type="number" min="2" step="2" value="12" />
+                        <div style="font-size:.75rem;color:var(--muted);margin-top:4px">Even count — pairs at opposite angles form diameters (12 → 6).</div>
                     </div>
                     <div>
                         <label>Delay Between (s)</label>
@@ -505,19 +506,8 @@
                     </div>
                 </div>
 
-                <div class="row2">
-                    <div>
-                        <label>HW Refresh (s)</label>
-                        <input id="hw_refresh" type="number" step="0.01" value="0.1" />
-                    </div>
-                    <div>
-                        <label>Nominal Diameter (mm)</label>
-                        <input id="nominal_diameter" type="number" step="0.01" value="18.00" />
-                    </div>
-                </div>
-
-                <label>Diameter Tolerance (mm)</label>
-                <input id="tolerance_mm" type="number" step="0.01" min="0" value="0.15" />
+                <label>HW Refresh (s)</label>
+                <input id="hw_refresh" type="number" step="0.01" value="0.1" />
 
                 <hr class="divider" />
 
@@ -535,6 +525,17 @@
                 <div class="card">
                     <div class="card-title">
                         <i class="ti ti-bolt" aria-hidden="true"></i> Run Test
+                    </div>
+
+                    <div class="row2" style="margin-bottom:14px">
+                        <div>
+                            <label>Target Diameter (mm)</label>
+                            <input id="nominal_diameter" type="number" step="0.01" min="0" placeholder="17.5" />
+                        </div>
+                        <div>
+                            <label>Tolerance (± mm)</label>
+                            <input id="tolerance_mm" type="number" step="0.01" min="0" placeholder="0.15" />
+                        </div>
                     </div>
 
                     <div class="battery-row">
@@ -581,7 +582,7 @@
                         <div class="diameter-viz-panel" id="diameterViz"></div>
 
                         <div class="samples-wrap">
-                            <div class="samples-label">Individual Samples</div>
+                            <div class="samples-label">Stitched Diameters</div>
                             <div class="samples-grid" id="samplesGrid"></div>
                         </div>
 
@@ -697,6 +698,10 @@
             const name = $('batteryName').value.trim();
             if (!name) { showStatus('Please enter a battery name.', 'err'); return; }
             if (!$('port').value) { showStatus('Please select a COM port.', 'err'); return; }
+            const target = $('nominal_diameter').value.trim();
+            const tolerance = $('tolerance_mm').value.trim();
+            if (!target) { showStatus('Enter a target diameter (mm).', 'err'); return; }
+            if (!tolerance) { showStatus('Enter a tolerance (mm).', 'err'); return; }
             log.innerHTML = '';
             $('resultsCard').style.display = 'none';
             window._lastResultPass = undefined;
@@ -723,11 +728,21 @@
             const [type, ...rest] = msg.split('|');
             const body = rest.join('|');
             if (type === 'INFO') addLog('l-info', body);
+            else if (type === 'RADIUS') {
+                const [idx, total, actual, deviation] = body.split('|');
+                addLog('l-sample', `  Radius ${idx}/${total}: ${actual} mm  (target ${deviation})`);
+            }
+            else if (type === 'DIAMETER') {
+                const [idx, total, actual, deviation, status] = body.split('|');
+                const cls = status === 'fail' ? 'l-warn' : 'l-sample';
+                const flag = status === 'fail' ? '  [OUT OF TOL]' : '';
+                addLog(cls, `  Diameter ${idx}/${total}: ${actual} mm  (target ${deviation})${flag}`);
+            }
             else if (type === 'SAMPLE') {
                 const [idx, total, actual, deviation, status] = body.split('|');
                 const cls = status === 'fail' ? 'l-warn' : 'l-sample';
                 const flag = status === 'fail' ? '  [OUT OF TOL]' : '';
-                addLog(cls, `  Sample ${idx}/${total}: ${actual} mm  (nominal ${deviation})${flag}`);
+                addLog(cls, `  Sample ${idx}/${total}: ${actual} mm  (target ${deviation})${flag}`);
             }
             else if (type === 'WARN') addLog('l-warn', '⚠ ' + body);
             else if (type === 'ERROR') addLog('l-error', '✖ ' + body);
@@ -742,8 +757,9 @@
                     const n = window._lastFailedCount || 0;
                     showStatus(`Problem — ${n} sample(s) out of tolerance.`, 'err');
                 } else if (window._lastResultPass) {
+                    const target = $('nominal_diameter').value;
                     const tol = $('tolerance_mm').value;
-                    showStatus(`Pass — all samples within ±${tol} mm.`, 'ok');
+                    showStatus(`Pass — all samples within ${target} ± ${tol} mm.`, 'ok');
                 } else {
                     showStatus('Capture complete.', 'ok');
                 }
@@ -786,7 +802,7 @@
                 const dev = s.deviation != null
                     ? ` (${s.deviation >= 0 ? '+' : ''}${s.deviation.toFixed(4)})`
                     : '';
-                chip.innerHTML = `<span>S${s.index} </span>${s.value.toFixed(4)} mm${dev}`;
+                chip.innerHTML = `<span>D${s.index} </span>${s.value.toFixed(4)} mm${dev}`;
                 grid.appendChild(chip);
             });
             $('resultsCard').style.display = 'block';

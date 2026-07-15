@@ -40,10 +40,10 @@ def get_settings() -> dict[str, Any]:
     return {
         "port": cfg("PORT", "COM4"),
         "baud_rate": int(cfg("BAUD_RATE", "9600")),
-        "total_samples": int(cfg("TOTAL_SAMPLES", "6")),
+        "total_samples": int(cfg("TOTAL_SAMPLES", "12")),
         "delay_seconds": float(cfg("DELAY_SECONDS", "1.0")),
         "hw_refresh": float(cfg("HARDWARE_REFRESH_SECONDS", "0.1")),
-        "nominal_diameter": float(cfg("BATTERY_NOMINAL_DIAMETER_MM", "17.3")),
+        "nominal_diameter": float(cfg("BATTERY_NOMINAL_DIAMETER_MM", "17.5")),
         "tolerance_mm": float(cfg("DIAMETER_TOLERANCE_MM", "0.15")),
         "sheet_id": cfg("GOOGLE_SHEET_ID", ""),
         "sheet_tab": cfg("GOOGLE_SHEET_TAB", ""),

@@ -388,8 +388,8 @@
 
                 <div class="row">
                     <div style="flex:1">
-                        <label>Total Samples</label>
-                        <input id="total_samples" type="number" min="1" value="6" />
+                        <label>Radius Samples</label>
+                        <input id="total_samples" type="number" min="2" step="2" value="12" />
                     </div>
                     <div style="flex:1">
                         <label>Stepper Timeout (s)</label>
@@ -399,12 +399,12 @@
 
                 <div class="row">
                     <div style="flex:1">
-                        <label>Nominal Diameter (mm)</label>
-                        <input id="nominal_diameter" type="number" step="0.01" value="17.15" />
+                        <label>Target Diameter (mm)</label>
+                        <input id="nominal_diameter" type="number" step="0.01" min="0" placeholder="17.5" />
                     </div>
                     <div style="flex:1">
-                        <label>Tolerance (mm)</label>
-                        <input id="tolerance_mm" type="number" step="0.01" value="0.15" />
+                        <label>Tolerance (± mm)</label>
+                        <input id="tolerance_mm" type="number" step="0.01" min="0" placeholder="0.15" />
                     </div>
                 </div>
 
@@ -569,6 +569,10 @@
         }
 
         async function captureDiameter(jellyrollId) {
+            const target = $('nominal_diameter').value.trim();
+            const tolerance = $('tolerance_mm').value.trim();
+            if (!target) { showStatus('Enter a target diameter (mm).', 'err'); return; }
+            if (!tolerance) { showStatus('Enter a tolerance (mm).', 'err'); return; }
             await saveSettings();
             const res = await fetch('/api/line/diameter', {
                 method: 'POST',

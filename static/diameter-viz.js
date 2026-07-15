@@ -32,6 +32,19 @@
         }));
     }
 
+    function outlineSamples(result) {
+        if (result.radius_samples && result.radius_samples.length) {
+            return {
+                samples: result.radius_samples,
+                mode: "radius",
+            };
+        }
+        return {
+            samples: normalizeSamples(result),
+            mode: "diameter",
+        };
+    }
+
     function polarToXY(cx, cy, radiusPx, angleDeg) {
         const rad = angleDeg * DEG;
         return {
@@ -71,22 +84,28 @@
         const showLegend = opts.showLegend !== false;
         const title = opts.title || "";
 
-        const nominal = Number(result.nominal ?? opts.nominal ?? 0);
+        const nominalDiameter = Number(result.nominal ?? opts.nominal ?? 0);
         const tolerance = Number(result.tolerance ?? opts.tolerance ?? 0);
-        const samples = normalizeSamples(result);
-        const total = samples.length || Number(opts.totalSamples) || 1;
+        const outlineData = outlineSamples(result);
+        const outlineMode = outlineData.mode;
+        const outlinePoints = outlineData.samples;
+        const diameterSamples = normalizeSamples(result);
+        const total = outlinePoints.length || diameterSamples.length || Number(opts.totalSamples) || 1;
 
-        if (!samples.length) {
+        if (!outlinePoints.length && !diameterSamples.length) {
             container.innerHTML = '<div class="diameter-viz-empty">No sample data</div>';
             return;
         }
 
-        const values = samples.map((s) => Number(s.value));
-        const minVal = Number(result.min ?? Math.min(...values));
-        const maxVal = Number(result.max ?? Math.max(...values));
+        const diameterValues = diameterSamples.map((s) => Number(s.value));
+        const minVal = Number(result.min ?? (diameterValues.length ? Math.min(...diameterValues) : 0));
+        const maxVal = Number(result.max ?? (diameterValues.length ? Math.max(...diameterValues) : 0));
         const minIndex = result.min_sample_index;
         const maxIndex = result.max_sample_index;
         const tirMm = Number(result.tir ?? maxVal - minVal);
+
+        const nominal = outlineMode === "radius" ? nominalDiameter / 2 : nominalDiameter;
+        const toleranceBand = outlineMode === "radius" ? tolerance / 2 : tolerance;
 
         const cx = size / 2;
         const cy = size / 2;
@@ -96,53 +115,102 @@
         // Nominal sits at ~70% of the drawable radius; the remaining band is for deviation.
         const baseRadiusPx = maxRadiusPx * 0.7;
         const ampBandPx = maxRadiusPx * 0.28;
+        const outlineValues = outlinePoints.map((s) => Number(s.value));
         const peakAbsDevMm = Math.max(
-            Math.abs(maxVal - nominal),
-            Math.abs(minVal - nominal),
+            ...outlineValues.map((value) => Math.abs(value - nominal)),
+            Math.abs(maxVal / (outlineMode === "radius" ? 2 : 1) - nominal),
+            Math.abs(minVal / (outlineMode === "radius" ? 2 : 1) - nominal),
             tirMm / 2,
-            tolerance,
+            toleranceBand,
             MIN_DEVIATION_WINDOW_MM
         );
         const pxPerMm = ampBandPx / peakAbsDevMm;
 
-        function radiusPxForDiameter(diameterMm) {
-            const amplified = baseRadiusPx + (Number(diameterMm) - nominal) * pxPerMm;
+        function radiusPxForMeasurement(valueMm) {
+            const amplified = baseRadiusPx + (Number(valueMm) - nominal) * pxPerMm;
             return Math.max(maxRadiusPx * 0.18, Math.min(maxRadiusPx, amplified));
         }
 
-        const nominalR = radiusPxForDiameter(nominal);
-        const tolOuterR = radiusPxForDiameter(nominal + tolerance);
-        const tolInnerR = radiusPxForDiameter(Math.max(nominal - tolerance, 0));
+        const nominalR = radiusPxForMeasurement(nominal);
+        const tolOuterR = radiusPxForMeasurement(nominal + toleranceBand);
+        const tolInnerR = radiusPxForMeasurement(Math.max(nominal - toleranceBand, 0));
         const uid = `dv-${Math.random().toString(36).slice(2, 9)}`;
-        const gain = nominal > 0 ? (pxPerMm / (baseRadiusPx / (nominal / 2))).toFixed(0) : "—";
+        const gain = nominal > 0 ? (pxPerMm / (baseRadiusPx / nominal)).toFixed(0) : "—";
 
-        const plotted = samples.map((sample) => {
+        const plotted = outlinePoints.map((sample) => {
             const angle = sampleAngle(sample, total);
             const value = Number(sample.value);
-            const radiusPx = radiusPxForDiameter(value);
+            const radiusPx = radiusPxForMeasurement(value);
             const point = polarToXY(cx, cy, radiusPx, angle);
-            const isMin = sample.index === minIndex || (minIndex == null && value === minVal);
-            const isMax = sample.index === maxIndex || (maxIndex == null && value === maxVal);
-            return { sample, angle, value, radiusPx, point, isMin, isMax };
+            return { sample, angle, value, radiusPx, point, isMin: false, isMax: false };
         });
 
         const outline = plotted.map((p) => `${p.point.x.toFixed(2)},${p.point.y.toFixed(2)}`).join(" ");
 
-        const sampleDots = plotted
+        const minDiameter = diameterSamples.find(
+            (sample) => sample.index === minIndex || (minIndex == null && Number(sample.value) === minVal)
+        );
+        const maxDiameter = diameterSamples.find(
+            (sample) => sample.index === maxIndex || (maxIndex == null && Number(sample.value) === maxVal)
+        );
+
+        function diameterMarkerPlot(sample, kind) {
+            if (!sample) return null;
+            const angle = sampleAngle(sample, diameterSamples.length || total);
+            const markerRadius = outlineMode === "radius" ? minVal / 2 : Number(sample.value);
+            const markerValue = Number(sample.value);
+            if (outlineMode === "radius" && kind === "max") {
+                return {
+                    sample,
+                    angle,
+                    value: maxVal,
+                    point: polarToXY(cx, cy, radiusPxForMeasurement(maxVal / 2), angle),
+                    isMin: kind === "min",
+                    isMax: kind === "max",
+                };
+            }
+            if (outlineMode === "radius" && kind === "min") {
+                return {
+                    sample,
+                    angle,
+                    value: minVal,
+                    point: polarToXY(cx, cy, radiusPxForMeasurement(minVal / 2), angle),
+                    isMin: kind === "min",
+                    isMax: kind === "max",
+                };
+            }
+            return {
+                sample,
+                angle,
+                value: markerValue,
+                point: polarToXY(cx, cy, radiusPxForMeasurement(markerRadius), angle),
+                isMin: kind === "min",
+                isMax: kind === "max",
+            };
+        }
+
+        const minPlot = diameterMarkerPlot(minDiameter, "min");
+        const maxPlot = diameterMarkerPlot(maxDiameter, "max");
+        if (minPlot) minPlot.isMin = true;
+        if (maxPlot) maxPlot.isMax = true;
+
+        const markerPlots = [minPlot, maxPlot].filter(Boolean);
+        const markerDots = markerPlots
             .map((p) => {
-                const cls = p.isMin ? "diameter-viz-point min" : p.isMax ? "diameter-viz-point max" : "diameter-viz-point";
+                const cls = p.isMin ? "diameter-viz-point min" : "diameter-viz-point max";
                 const label = p.isMin
-                    ? `<title>Min S${p.sample.index}: ${fmt(p.value, digits)} mm @ ${fmt(p.angle, 0)}°</title>`
-                    : p.isMax
-                      ? `<title>Max S${p.sample.index}: ${fmt(p.value, digits)} mm @ ${fmt(p.angle, 0)}°</title>`
-                      : `<title>S${p.sample.index}: ${fmt(p.value, digits)} mm @ ${fmt(p.angle, 0)}°</title>`;
-                const r = p.isMin || p.isMax ? markerDotSize : dotSize;
-                return `${label}<circle class="${cls}" cx="${p.point.x.toFixed(2)}" cy="${p.point.y.toFixed(2)}" r="${r}" />`;
+                    ? `<title>Min D${p.sample.index}: ${fmt(p.value, digits)} mm @ ${fmt(p.angle, 0)}°</title>`
+                    : `<title>Max D${p.sample.index}: ${fmt(p.value, digits)} mm @ ${fmt(p.angle, 0)}°</title>`;
+                return `${label}<circle class="${cls}" cx="${p.point.x.toFixed(2)}" cy="${p.point.y.toFixed(2)}" r="${markerDotSize}" />`;
             })
             .join("\n");
 
-        const minPlot = plotted.find((p) => p.isMin);
-        const maxPlot = plotted.find((p) => p.isMax);
+        const outlineDots = plotted
+            .map((p) => {
+                const label = `<title>R${p.sample.index}: ${fmt(p.value, digits)} mm @ ${fmt(p.angle, 0)}°</title>`;
+                return `${label}<circle class="diameter-viz-point" cx="${p.point.x.toFixed(2)}" cy="${p.point.y.toFixed(2)}" r="${dotSize}" />`;
+            })
+            .join("\n");
 
         function markerLabel(plot, kind) {
             if (!plot) return "";
@@ -181,7 +249,8 @@
                     <circle class="diameter-viz-tolerance-band inner" cx="${cx}" cy="${cy}" r="${tolInnerR.toFixed(2)}" />
                     <circle class="diameter-viz-nominal" cx="${cx}" cy="${cy}" r="${nominalR.toFixed(2)}" />
                     <polygon class="diameter-viz-outline" points="${outline}" />
-                    ${sampleDots}
+                    ${outlineDots}
+                    ${markerDots}
                     ${markerLabel(minPlot, "min")}
                     ${markerLabel(maxPlot, "max")}
                     <circle class="diameter-viz-center" cx="${cx}" cy="${cy}" r="2" />
@@ -189,7 +258,7 @@
                 ${
                     showLegend
                         ? `<div class="diameter-viz-legend">
-                            <span><i class="swatch nominal"></i>Nominal Ø ${fmt(nominal, digits)} mm</span>
+                            <span><i class="swatch nominal"></i>Target Ø ${fmt(nominalDiameter, digits)} mm</span>
                             <span><i class="swatch tol"></i>±${fmt(tolerance, digits)} mm</span>
                             <span><i class="swatch tir"></i>TIR ${tir} mm</span>
                             <span>Deviation ×${gain}</span>
