@@ -306,11 +306,11 @@ def build_diameter_header(n: int) -> list[str]:
         "Min θ",
         "Max D",
         "Max θ",
-        "Avg",
         "TIR",
         "TOL",
         "Status",
         *_sample_headers(n),
+        "Avg",
     ]
 
 
@@ -327,11 +327,11 @@ def build_line_header(total_samples: int) -> list[str]:
         "Min θ",
         "Max D",
         "Max θ",
-        "Avg",
         "TIR",
         "TOL",
         "Status",
         *_sample_headers(total_samples),
+        "Avg",
     ]
 
 
