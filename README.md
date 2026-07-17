@@ -62,11 +62,17 @@ python ohaus_reader.py --port COM5 --mode listen
 
 ## Measurement model
 
-The gauge reports deviation from nominal. Actual diameter is:
+The gauge reports deviation from the calibration master (**nominal diameter**). Actual diameter is:
 
 `actual = BATTERY_NOMINAL_DIAMETER_MM + captured_value`
 
 Positive values add to nominal; negative values subtract.
+
+Pass/fail uses a separate **target diameter** and tolerance:
+
+`pass when |actual − BATTERY_TARGET_DIAMETER_MM| ≤ DIAMETER_TOLERANCE_MM`
+
+This lets you calibrate on a 17.5 mm master while judging product around a different target (for example 17.3 ± 0.05 mm).
 
 ## Windows packaging / GitHub Releases
 

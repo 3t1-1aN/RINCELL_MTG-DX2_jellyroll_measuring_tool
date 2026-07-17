@@ -53,7 +53,8 @@ Diameter guide:
 
 - Supported device: MTG-DX2 diameter gauge.
 - Serial settings: COM port, baud rate, sample count, hardware refresh, delay.
-- Measurement model: actual diameter = nominal diameter + gauge deviation.
+- Measurement model: actual diameter = nominal (calibration) diameter + gauge deviation.
+- Pass/fail: against target diameter ± tolerance (target may differ from nominal).
 - Output: min, max, TIR, tolerance status, failed samples.
 
 OHAUS guide:

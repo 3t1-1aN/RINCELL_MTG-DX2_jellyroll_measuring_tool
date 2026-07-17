@@ -529,13 +529,20 @@
 
                     <div class="row2" style="margin-bottom:14px">
                         <div>
-                            <label>Target Diameter (mm)</label>
+                            <label>Nominal Diameter (mm)</label>
                             <input id="nominal_diameter" type="number" step="0.01" min="0" placeholder="17.5" />
                         </div>
+                        <div>
+                            <label>Target Diameter (mm)</label>
+                            <input id="target_diameter" type="number" step="0.01" min="0" placeholder="17.5" />
+                        </div>
+                    </div>
+                    <div class="row2" style="margin-bottom:14px">
                         <div>
                             <label>Tolerance (± mm)</label>
                             <input id="tolerance_mm" type="number" step="0.01" min="0" placeholder="0.15" />
                         </div>
+                        <div></div>
                     </div>
 
                     <div class="battery-row">
@@ -624,6 +631,7 @@
                 delay_seconds: $('delay_seconds').value,
                 hw_refresh: $('hw_refresh').value,
                 nominal_diameter: $('nominal_diameter').value,
+                target_diameter: $('target_diameter').value,
                 tolerance_mm: $('tolerance_mm').value,
                 sheet_id: $('sheet_id').value,
                 sheet_tab: $('sheet_tab').value,
@@ -679,6 +687,7 @@
             $('delay_seconds').value = s.delay_seconds;
             $('hw_refresh').value = s.hw_refresh;
             $('nominal_diameter').value = s.nominal_diameter;
+            $('target_diameter').value = s.target_diameter;
             $('tolerance_mm').value = s.tolerance_mm;
             $('sheet_id').value = s.sheet_id;
             $('sheet_tab').value = s.sheet_tab;
@@ -698,8 +707,10 @@
             const name = $('batteryName').value.trim();
             if (!name) { showStatus('Please enter a battery name.', 'err'); return; }
             if (!$('port').value) { showStatus('Please select a COM port.', 'err'); return; }
-            const target = $('nominal_diameter').value.trim();
+            const nominal = $('nominal_diameter').value.trim();
+            const target = $('target_diameter').value.trim();
             const tolerance = $('tolerance_mm').value.trim();
+            if (!nominal) { showStatus('Enter a nominal diameter (mm).', 'err'); return; }
             if (!target) { showStatus('Enter a target diameter (mm).', 'err'); return; }
             if (!tolerance) { showStatus('Enter a tolerance (mm).', 'err'); return; }
             log.innerHTML = '';
@@ -757,7 +768,7 @@
                     const n = window._lastFailedCount || 0;
                     showStatus(`Problem — ${n} sample(s) out of tolerance.`, 'err');
                 } else if (window._lastResultPass) {
-                    const target = $('nominal_diameter').value;
+                    const target = $('target_diameter').value;
                     const tol = $('tolerance_mm').value;
                     showStatus(`Pass — all samples within ${target} ± ${tol} mm.`, 'ok');
                 } else {
@@ -791,7 +802,6 @@
             renderDiameterViz($('diameterViz'), r, {
                 size: 560,
                 digits: 3,
-                title: 'Cross-section profile',
             });
             const grid = $('samplesGrid');
             grid.innerHTML = '';

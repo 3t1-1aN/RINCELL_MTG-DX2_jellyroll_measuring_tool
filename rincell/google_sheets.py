@@ -411,16 +411,16 @@ STATUS_FAIL_HEADERS = {
 
 
 def _sample_deviation_by_index(result: dict) -> dict[int, float]:
-    """Return sample index -> signed deviation from nominal (mm)."""
+    """Return sample index -> signed deviation from target (mm)."""
     deviations: dict[int, float] = {}
-    nominal = result.get("nominal")
+    target = result.get("target", result.get("nominal"))
     for sample in result.get("samples") or []:
         index = int(sample["index"])
         if sample.get("deviation") is not None:
             deviations[index] = float(sample["deviation"])
             continue
-        if nominal is not None and sample.get("value") is not None:
-            deviations[index] = float(sample["value"]) - float(nominal)
+        if target is not None and sample.get("value") is not None:
+            deviations[index] = float(sample["value"]) - float(target)
     return deviations
 
 
@@ -444,7 +444,7 @@ def _out_of_tol_format_requests(header: list[str], row_number: int, result: dict
                 continue
             if text not in _sample_header_aliases(sample_index):
                 continue
-            # Too small vs nominal -> red; too big vs nominal -> green.
+            # Too small vs target -> red; too big vs target -> green.
             style = RED_TEXT if deviation < 0 else GREEN_TEXT
             requests.append({"range": cell, "format": style})
             break

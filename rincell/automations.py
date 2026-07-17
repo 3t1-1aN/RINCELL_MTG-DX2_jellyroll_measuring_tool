@@ -31,7 +31,7 @@ AUTOMATIONS: tuple[AutomationDefinition, ...] = (
         description="Diagnostic/manual diameter-only capture for setup and troubleshooting.",
         route="/diameter",
         status="Diagnostic",
-        required_settings=("PORT", "BAUD_RATE", "BATTERY_NOMINAL_DIAMETER_MM", "DIAMETER_TOLERANCE_MM", "GOOGLE_SHEET_ID"),
+        required_settings=("PORT", "BAUD_RATE", "BATTERY_NOMINAL_DIAMETER_MM", "BATTERY_TARGET_DIAMETER_MM", "DIAMETER_TOLERANCE_MM", "GOOGLE_SHEET_ID"),
     ),
     AutomationDefinition(
         id="ohaus-weight",

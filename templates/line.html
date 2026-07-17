@@ -399,13 +399,20 @@
 
                 <div class="row">
                     <div style="flex:1">
-                        <label>Target Diameter (mm)</label>
+                        <label>Nominal Diameter (mm)</label>
                         <input id="nominal_diameter" type="number" step="0.01" min="0" placeholder="17.5" />
                     </div>
+                    <div style="flex:1">
+                        <label>Target Diameter (mm)</label>
+                        <input id="target_diameter" type="number" step="0.01" min="0" placeholder="17.5" />
+                    </div>
+                </div>
+                <div class="row">
                     <div style="flex:1">
                         <label>Tolerance (± mm)</label>
                         <input id="tolerance_mm" type="number" step="0.01" min="0" placeholder="0.15" />
                     </div>
+                    <div style="flex:1"></div>
                 </div>
 
                 <hr class="divider" />
@@ -461,6 +468,7 @@
                 motor_timeout_seconds: $('motor_timeout_seconds').value,
                 total_samples: $('total_samples').value,
                 nominal_diameter: $('nominal_diameter').value,
+                target_diameter: $('target_diameter').value,
                 tolerance_mm: $('tolerance_mm').value,
                 sheet_id: $('sheet_id').value,
                 sheet_tab: $('sheet_tab').value,
@@ -513,6 +521,7 @@
             $('motor_timeout_seconds').value = s.motor_timeout_seconds;
             $('total_samples').value = s.total_samples;
             $('nominal_diameter').value = s.nominal_diameter;
+            $('target_diameter').value = s.target_diameter;
             $('tolerance_mm').value = s.tolerance_mm;
             $('sheet_id').value = s.sheet_id;
             $('sheet_tab').value = s.sheet_tab;
@@ -569,8 +578,10 @@
         }
 
         async function captureDiameter(jellyrollId) {
-            const target = $('nominal_diameter').value.trim();
+            const nominal = $('nominal_diameter').value.trim();
+            const target = $('target_diameter').value.trim();
             const tolerance = $('tolerance_mm').value.trim();
+            if (!nominal) { showStatus('Enter a nominal diameter (mm).', 'err'); return; }
             if (!target) { showStatus('Enter a target diameter (mm).', 'err'); return; }
             if (!tolerance) { showStatus('Enter a tolerance (mm).', 'err'); return; }
             await saveSettings();

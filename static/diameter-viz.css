@@ -35,82 +35,95 @@
     height: auto;
 }
 
-.diameter-viz-body {
-    fill: rgba(82, 144, 119, .06);
-    stroke: none;
-}
-
-.diameter-viz-crosshair {
-    fill: none;
-    stroke: rgba(134, 144, 156, .18);
-    stroke-width: 1;
-}
-
-.diameter-viz-nominal {
-    fill: none;
-    stroke: var(--green, #529077);
-    stroke-width: 1.5;
-    stroke-dasharray: 5 4;
-    opacity: .85;
-}
-
-.diameter-viz-tolerance-band {
-    fill: rgba(82, 144, 119, .08);
-    stroke: rgba(82, 144, 119, .28);
-    stroke-width: 1;
-}
-
-.diameter-viz-tolerance-band.inner {
+.diameter-viz-bg {
     fill: #ffffff;
-    stroke: rgba(82, 144, 119, .28);
+}
+
+.diameter-viz-spoke {
+    fill: none;
+    stroke: rgba(134, 144, 156, .22);
+    stroke-width: 1;
+}
+
+.diameter-viz-ring {
+    fill: none;
+    stroke: rgba(134, 144, 156, .35);
+    stroke-width: 1;
+}
+
+.diameter-viz-ring.target {
+    stroke: #1f4b99;
+    stroke-width: 2.75;
+}
+
+.diameter-viz-tol-limit {
+    fill: none;
+    stroke: rgba(47, 111, 237, .35);
+    stroke-width: 1.25;
+    stroke-dasharray: 5 4;
 }
 
 .diameter-viz-outline {
-    fill: rgba(249, 161, 60, .14);
-    stroke: var(--orange, #f9a13c);
-    stroke-width: 1.75;
+    fill: rgba(47, 111, 237, .14);
+    stroke: #2f6fed;
+    stroke-width: 2;
     stroke-linejoin: round;
 }
 
 .diameter-viz-point {
-    fill: #ffffff;
-    stroke: var(--orange, #f9a13c);
+    fill: #2f6fed;
+    stroke: #1d4ed8;
     stroke-width: 1.5;
 }
 
-.diameter-viz-point.min {
+.diameter-viz-point.ok {
     fill: #2f6fed;
     stroke: #1d4ed8;
-    stroke-width: 2;
 }
 
 .diameter-viz-point.max {
+    fill: #1f9d55;
+    stroke: #157a41;
+    stroke-width: 2;
+}
+
+.diameter-viz-point.min {
     fill: #e4572e;
     stroke: #c0392b;
     stroke-width: 2;
 }
 
-.diameter-viz-center {
-    fill: var(--navy, #121212);
-    opacity: .35;
-}
-
-.diameter-viz-label {
+.diameter-viz-minmax {
     font-weight: 800;
     letter-spacing: .03em;
 }
 
-.diameter-viz-label.min {
-    fill: #1d4ed8;
+.diameter-viz-minmax.max {
+    fill: #157a41;
 }
 
-.diameter-viz-label.max {
+.diameter-viz-minmax.min {
     fill: #c0392b;
 }
 
-.diameter-viz-label-sub {
-    font-weight: 600;
+.diameter-viz-center {
+    fill: #121212;
+    opacity: .4;
+}
+
+.diameter-viz-ring-label {
     fill: var(--muted, #86909c);
+    font-weight: 600;
+}
+
+.diameter-viz-ring-label.target {
+    fill: #1f4b99;
+    font-weight: 800;
+}
+
+.diameter-viz-angle {
+    fill: var(--muted, #86909c);
+    font-weight: 600;
 }
 
 .diameter-viz-legend {
@@ -132,22 +145,35 @@
     vertical-align: -1px;
 }
 
-.diameter-viz-legend .swatch.nominal {
-    background: var(--green, #529077);
+.diameter-viz-legend .swatch.target {
+    background: #1f4b99;
 }
 
 .diameter-viz-legend .swatch.tol {
-    background: rgba(82, 144, 119, .25);
-    box-shadow: inset 0 0 0 1px rgba(82, 144, 119, .45);
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px rgba(47, 111, 237, .55);
+    border-radius: 2px;
+}
+
+.diameter-viz-legend .swatch.ok {
+    background: #2f6fed;
+}
+
+.diameter-viz-legend .swatch.max {
+    background: #1f9d55;
+}
+
+.diameter-viz-legend .swatch.min {
+    background: #e4572e;
 }
 
 .diameter-viz-legend .swatch.tir {
-    background: var(--orange, #f9a13c);
+    background: #2f6fed;
 }
 
 .diameter-viz.fail .diameter-viz-outline {
-    fill: rgba(183, 28, 28, .08);
-    stroke: var(--error, #b71c1c);
+    fill: rgba(47, 111, 237, .1);
+    stroke: #2f6fed;
 }
 
 .diameter-viz-empty {

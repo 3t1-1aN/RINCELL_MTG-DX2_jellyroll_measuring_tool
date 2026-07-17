@@ -33,8 +33,8 @@ def require_even_radius_count(total: int) -> None:
         raise ValueError(f"Radius sample count must be an even number >= 2 (got {total}).")
 
 
-def sample_in_tolerance(actual: float, nominal: float, tolerance: float) -> bool:
-    return abs(actual - nominal) <= tolerance
+def sample_in_tolerance(actual: float, target: float, tolerance: float) -> bool:
+    return abs(actual - target) <= tolerance
 
 
 def angle_for_position(index: int, total: int) -> float:
@@ -60,11 +60,18 @@ def stitch_opposite_radii_to_diameters(radius_records: list[dict]) -> list[dict]
     return diameters
 
 
-def evaluate_samples(sample_records: list[dict], nominal: float, tolerance: float) -> dict:
+def evaluate_samples(
+    sample_records: list[dict],
+    target: float,
+    tolerance: float,
+    *,
+    nominal: float | None = None,
+) -> dict:
+    """Judge samples against target ± tolerance. Nominal is calibration reference only."""
     samples = []
     for sample in sample_records:
         actual = sample["value"]
-        dev = actual - nominal
+        dev = actual - target
         ok = abs(dev) <= tolerance
         samples.append(
             {
@@ -78,7 +85,8 @@ def evaluate_samples(sample_records: list[dict], nominal: float, tolerance: floa
     failed = [s for s in samples if not s["ok"]]
     return {
         "tolerance": tolerance,
-        "nominal": nominal,
+        "target": target,
+        "nominal": nominal if nominal is not None else target,
         "samples": samples,
         "pass": len(failed) == 0,
         "failed_count": len(failed),
@@ -120,19 +128,19 @@ def capture_one_radius_sample(
 
 def log_stitched_diameters(
     diameter_records: list[dict],
-    nominal: float,
+    target: float,
     tolerance: float,
     push_log: LogFn,
 ) -> None:
     total = len(diameter_records)
     for sample in diameter_records:
         actual = sample["value"]
-        dev = actual - nominal
+        dev = actual - target
         sign = "+" if dev >= 0 else "-"
-        status = "ok" if sample_in_tolerance(actual, nominal, tolerance) else "fail"
+        status = "ok" if sample_in_tolerance(actual, target, tolerance) else "fail"
         push_log(
             f"DIAMETER|{sample['index']}|{total}|{actual:.4f}|"
-            f"{nominal} {sign} {abs(dev):.4f}|{status}"
+            f"{target} {sign} {abs(dev):.4f}|{status}"
         )
 
 
@@ -250,8 +258,9 @@ def capture_diameter(settings: dict, battery_name: str, push_log: LogFn) -> dict
 
     diameter_records = stitch_opposite_radii_to_diameters(radius_records)
     nominal = settings["nominal_diameter"]
+    target = settings["target_diameter"]
     tolerance = settings["tolerance_mm"]
-    log_stitched_diameters(diameter_records, nominal, tolerance, push_log)
+    log_stitched_diameters(diameter_records, target, tolerance, push_log)
 
     pts = [sample["value"] for sample in diameter_records]
     min_sample = min(diameter_records, key=lambda sample: sample["value"])
@@ -260,7 +269,7 @@ def capture_diameter(settings: dict, battery_name: str, push_log: LogFn) -> dict
     mx = max(pts)
     avg = sum(pts) / len(pts)
     tir = mx - mn
-    eval_result = evaluate_samples(diameter_records, nominal, tolerance)
+    eval_result = evaluate_samples(diameter_records, target, tolerance, nominal=nominal)
     result = {
         "points": pts,
         "radius_samples": radius_records,
