@@ -20,7 +20,7 @@ Content:
 - Basic requirements:
   - Windows PC.
   - USB/serial cable for the device.
-  - Google Sheets credentials if saving to Sheets.
+  - Release zip already includes `credentials.json` for Google Sheets OAuth.
 
 ### Setup Guide
 
@@ -28,22 +28,25 @@ Purpose: first-run checklist.
 
 Content:
 
-1. Download and extract the release zip.
-2. Double-click `Start Rincell.bat`.
-3. Select `Production Line Workflow` from the launcher.
-4. Connect the OHAUS balance and diameter gauge.
-5. Pick the COM ports.
-6. Enter Google Sheet settings.
+1. Download and extract the release zip (keep all files in one folder).
+2. Confirm `credentials.json` is beside `Start Rincell.bat`.
+3. Double-click `Start Rincell.bat`.
+4. Select `Production Line Workflow` from the launcher.
+5. Connect the OHAUS balance and diameter gauge.
+6. Pick COM ports, nominal/target diameter, tolerance, and Google Sheet ID. Save.
 7. Start the OHAUS listener.
-8. Arm a jellyroll ID, capture weight, then capture diameter from the queue.
+8. On first Sheets write, complete the browser Google login (`token.json` is created).
+9. Arm a jellyroll ID, capture weight, then capture diameter from the queue.
 
 Include screenshots for:
 
 - Launcher home page.
-- Production Line Workflow page.
-- Diameter settings panel.
+- Production Line Workflow page (weight station, diameter station, waiting queue).
+- Diameter settings panel (nominal vs target).
 - OHAUS settings panel.
-- Successful capture result.
+- Successful capture result and polar viz legend.
+
+Component-by-component UI meanings are documented in the root `README.md` under **Web UI guide**.
 
 ### Device Guides
 
@@ -84,7 +87,9 @@ Common issues:
 - OHAUS no reading: enable Auto Print, press PRINT, or switch to poll mode.
 - Unassigned OHAUS reading: enter/scan and arm a jellyroll ID before weighing.
 - Diameter capture incomplete: confirm gauge command support, baud rate, and sample timing.
-- Google Sheets error: check `credentials.json`, Sheet ID, tab name, and sharing permissions.
+- Google Sheets auth error: delete `token.json` beside the launcher, keep `credentials.json`, retry and sign in again.
+- Google Sheets permission / not found: check Sheet ID, tab name, and that the signed-in account can edit the sheet.
+- Missing credentials: copy `credentials.json` from a fresh release zip into the launcher folder.
 
 ### Release Notes
 
@@ -110,14 +115,3 @@ Link to:
 - `docs/production-line-workflow.md`.
 - `docs/future-automations.md`.
 - GitHub or internal source repository.
-
-## Hosting Recommendation
-
-Start with a static website. Good options:
-
-- GitHub Pages.
-- Netlify.
-- Vercel.
-- A simple company-hosted static page.
-
-The download button should point to the latest release zip produced by `packaging/build_windows.ps1`.

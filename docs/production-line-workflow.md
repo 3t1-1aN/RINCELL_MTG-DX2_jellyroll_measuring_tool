@@ -6,7 +6,7 @@ The production workflow runs the OHAUS weight station and diameter gauge station
 
 1. Open the Rincell launcher.
 2. Select `Production Line Workflow`.
-3. Confirm the OHAUS COM port, diameter gauge COM port, and Google Sheet settings.
+3. Confirm the OHAUS COM port, diameter gauge COM port, nominal/target diameter, tolerance, and Google Sheet settings.
 4. Start the OHAUS listener.
 5. Enter or scan the next jellyroll ID.
 6. Place that jellyroll on the OHAUS balance.
@@ -25,8 +25,10 @@ Columns include:
 - Jellyroll ID.
 - Weight timestamp and raw OHAUS output.
 - Diameter timestamp.
-- Min diameter with angle, max diameter with angle, TIR, tolerance, and diameter status.
+- Min diameter with angle, max diameter with angle, average diameter, TIR, tolerance, and diameter status.
 - Overall status.
+
+Pass/fail uses target diameter ± tolerance. Nominal diameter is the calibration master only.
 
 Weight capture creates the row. Diameter capture updates that same test row.
 
