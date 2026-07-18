@@ -18,9 +18,10 @@ Current tools:
 
 2. Copy `.env.example` to `.env` and fill in your settings.
 
-3. Add Google credentials:
-   - Place a Desktop OAuth `credentials.json` or service account JSON in this folder.
-   - On first run, the app opens a browser to authorize Google Sheets access and writes `token.json`.
+3. Google credentials:
+   - Windows release zips already include `credentials.json` beside the launcher.
+   - For source runs, keep a Desktop OAuth `credentials.json` in this folder.
+   - On first Sheets use, the app opens a browser to authorize access and writes `token.json`.
 
 ## Run the launcher
 

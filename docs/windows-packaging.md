@@ -47,7 +47,7 @@ The script will:
 1. Create `.venv` if needed.
 2. Install runtime and build dependencies.
 3. Run PyInstaller using `packaging/RincellLauncher.spec`.
-4. Copy `.env.example` and `README.md` into the release folder.
+4. Copy `.env.example`, `README.md`, and `credentials.json` into the release folder.
 5. Create a zip file ready to upload to GitHub Releases or a download website.
 
 ## Operator Setup
@@ -62,7 +62,7 @@ The script will:
 ## Files Operators May Need
 
 - `.env`: created from `.env.example` when settings are saved.
-- `credentials.json`: Google Sheets credential file, placed beside the launcher.
-- `token.json`: created automatically after first Google OAuth login.
+- `credentials.json`: Desktop OAuth client JSON, included in the release zip beside the launcher.
+- `token.json`: created automatically after first Google OAuth login (local only; not packaged).
 
-Do not commit or upload `credentials.json`, `token.json`, or `.env`.
+Do not commit or share `token.json` or `.env`.

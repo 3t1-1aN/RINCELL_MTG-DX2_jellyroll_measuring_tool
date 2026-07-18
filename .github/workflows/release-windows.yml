@@ -83,9 +83,10 @@ jobs:
 
             ## First-run notes
 
-            - Place your Google `credentials.json` beside the launcher if Sheets logging is needed
+            - `credentials.json` is included beside the launcher for Google Sheets OAuth
+            - On first Sheets use, complete the browser login; `token.json` is created locally
             - Save COM ports and settings in the app UI
-            - Do not commit or share `.env`, `credentials.json`, or `token.json`
+            - Do not share `.env` or `token.json`
           files: |
             release/Rincell-Measurement-Tools-${{ steps.version.outputs.version }}.zip
         env:

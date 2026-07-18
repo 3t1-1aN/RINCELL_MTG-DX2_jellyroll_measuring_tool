@@ -47,6 +47,11 @@ Copy-Item ".\dist\Rincell Launcher" $ReleaseDir -Recurse
 Copy-Item ".\.env.example" (Join-Path $ReleaseDir ".env.example") -Force
 Copy-Item ".\README.md" (Join-Path $ReleaseDir "README.md") -Force
 
+if (-not (Test-Path ".\credentials.json")) {
+    throw "credentials.json is required in the repo root so it can be shipped beside the launcher."
+}
+Copy-Item ".\credentials.json" (Join-Path $ReleaseDir "credentials.json") -Force
+
 $StartScript = @"
 @echo off
 cd /d "%~dp0"

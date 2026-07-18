@@ -1,5 +1,6 @@
 .env
-credentials.json
+# Desktop OAuth client JSON is shipped in the Windows release zip for operators.
+# Keep token.json local-only; never package user auth tokens.
 token.json
 __pycache__/
 *.pyc
